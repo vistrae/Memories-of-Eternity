@@ -1,19 +1,19 @@
-"""Reproduce signed B15 APKs and publish them without exposing private signing keys."""
+"""Reproduce signed B18 APKs and publish them without exposing private signing keys."""
 import argparse,base64,hashlib,io,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-RELEASE=ROOT/"release"/"b15-build-label"
+RELEASE=ROOT/"release"/"b18-local-saves-helpers"
 REPO="vistrae/Memories-of-Eternity"
-SOURCE_SHA="cf5922984ea0a6df9114007af98273ce2a0d3c2a901973eab16ba121718b3c56"
-HELPER_SHA="dc4bf29b599d21fb89c4134f17401881f708796fb7eddc0642e48db2252d09f5"
+SOURCE_SHA="668934bbbba371b9b37982c5f4c109ebc4de1ec208b8c9dc7ec3a268fc5dad7c"
+HELPER_SHA="15bbce3851b52763b4ffba97cac93cec7e59721fc48b53e5eeae98b215e7c896"
 SAI_CERT="a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc"
 
 def sha(data):return hashlib.sha256(data).hexdigest()
 
 def download_source():
- url="https://github.com/vistrae/Memories-of-Eternity/releases/download/b14-title-updates/moe-base.apk"
+ url="https://github.com/vistrae/Memories-of-Eternity/releases/download/b15-build-label/moe-base.apk"
  with urllib.request.urlopen(url,timeout=180) as response:data=response.read(100*1024*1024+1)
- if sha(data)!=SOURCE_SHA:raise RuntimeError("Published B14 bootstrap SHA256 mismatch.")
+ if sha(data)!=SOURCE_SHA:raise RuntimeError("Published B15 bootstrap SHA256 mismatch.")
  return data
 
 def checked(data,spec,label):
@@ -22,7 +22,9 @@ def checked(data,spec,label):
  return data
 
 def decode_patch(name):
- return base64.b64decode((RELEASE/name).read_text().strip(),validate=True)
+ parts=sorted(RELEASE.glob(name.replace(".b64",".part*.b64")))
+ encoded="".join(part.read_text().strip() for part in parts) if parts else (RELEASE/name).read_text().strip()
+ return base64.b64decode(encoded,validate=True)
 
 def same_game_content(canonical,variant):
  with zipfile.ZipFile(io.BytesIO(canonical)) as a,zipfile.ZipFile(io.BytesIO(variant)) as b:
@@ -34,38 +36,57 @@ def same_game_content(canonical,variant):
    if sha(a.read(name))!=sha(b.read(name)):
     raise RuntimeError("Signing variant changed game content: "+name)
 
+def write_zip_entry(archive,name,data):
+ info=zipfile.ZipInfo(name,(2026,11,20,0,0,0));info.create_system=3
+ info.external_attr=0o100644<<16;info.compress_type=zipfile.ZIP_DEFLATED
+ archive.writestr(info,data,compress_type=zipfile.ZIP_DEFLATED,compresslevel=1)
+
+def verify_manifest(data):
+ import hmac,xml.etree.ElementTree as ET
+ config=json.loads((ROOT/"updater/windows/GitHub-Update-Config.json").read_text(encoding="utf-8-sig"))
+ key=ET.fromstring(config["public_key_xml"])
+ n=int.from_bytes(base64.b64decode(key.findtext("Modulus")),"big")
+ e=int.from_bytes(base64.b64decode(key.findtext("Exponent")),"big")
+ sig=base64.b64decode((RELEASE/"moe-update.json.sig").read_bytes(),validate=True)
+ size=(n.bit_length()+7)//8
+ if len(sig)!=size or int.from_bytes(sig,"big")>=n:raise RuntimeError("Invalid manifest signature size")
+ digest=bytes.fromhex("3031300d060960864801650304020105000420")+hashlib.sha256(data).digest()
+ expected=b"\x00\x01"+b"\xff"*(size-len(digest)-3)+b"\x00"+digest
+ if not hmac.compare_digest(pow(int.from_bytes(sig,"big"),e,n).to_bytes(size,"big"),expected):raise RuntimeError("Manifest signature mismatch")
+
 def build(source=None):
  import bsdiff4
  # Decode exact signed bytes; text newline conversion would invalidate the signature.
  manifest_bytes=base64.b64decode((RELEASE/"moe-update.json.b64").read_text().strip(),validate=True)
+ verify_manifest(manifest_bytes)
  (RELEASE/"moe-update.json").write_bytes(manifest_bytes)
  manifest=json.loads(manifest_bytes.decode("utf-8-sig"))
- if manifest["release_id"]!="b15-build-label" or manifest["sequence"]!=15:
-  raise RuntimeError("Wrong B15 release manifest.")
+ if manifest["release_id"]!="b18-local-saves-helpers" or manifest["sequence"]!=18:
+  raise RuntimeError("Wrong B18 release manifest.")
  original=Path(source).read_bytes() if source else download_source()
  if sha(original)!=SOURCE_SHA:raise RuntimeError("Wrong bootstrap APK")
  apk=checked(bsdiff4.patch(original,decode_patch("moe-base.bsdiff.b64")),manifest["apk"],"Canonical APK")
  target=RELEASE/"moe-base.apk";target.write_bytes(apk)
  variants=manifest.get("apk_variants",[])
  if len(variants)!=1 or variants[0]["signing_certificate_sha256"]!=SAI_CERT:
-  raise RuntimeError("Expected exactly the B15 standard-SAI signing variant.")
+  raise RuntimeError("Expected exactly the B18 standard-SAI signing variant.")
  variant_spec=variants[0]
  if Path(urllib.parse.urlparse(variant_spec["url"]).path).name!="moe-base-sai.apk":
   raise RuntimeError("Unexpected SAI variant asset name.")
  sai=checked(bsdiff4.patch(apk,decode_patch("moe-base-sai.bsdiff.b64")),variant_spec,"SAI-compatible APK")
  same_game_content(apk,sai)
  sai_target=RELEASE/"moe-base-sai.apk";sai_target.write_bytes(sai)
- bundle=RELEASE/"MOE-Windows-Updater-B15.zip"
+ bundle=RELEASE/"MOE-Windows-Updater-B18.zip"
  with zipfile.ZipFile(bundle,"w",zipfile.ZIP_DEFLATED,compresslevel=1) as z:
   for path in sorted((ROOT/"updater/windows").glob("*")):
-   if path.is_file():z.write(path,path.name)
-  z.write(target,"MOE-Offline-Campaign-Chapter13-Rewards.apk")
-  z.write(ROOT/"README.md","GitHub-Updater-Readme.txt")
+   if path.is_file():write_zip_entry(z,path.name,path.read_bytes())
+  write_zip_entry(z,"MOE-Offline-Campaign-Chapter13-Rewards.apk",target.read_bytes())
+  write_zip_entry(z,"GitHub-Updater-Readme.txt",(ROOT/"README.md").read_bytes())
  helper=RELEASE/"MOE-Android-Update-Installer.apk"
  helper_bytes=base64.b64decode((RELEASE/"phone-installer.apk.b64").read_text().strip(),validate=True)
- if sha(helper_bytes)!=HELPER_SHA:raise RuntimeError("B15 phone installer checksum mismatch")
+ if sha(helper_bytes)!=HELPER_SHA:raise RuntimeError("B18 phone installer checksum mismatch")
  helper.write_bytes(helper_bytes)
- print("Signed B15 canonical and SAI-compatible APKs reproduced and verified; game content is identical.")
+ print("Signed B18 canonical and SAI-compatible APKs reproduced and verified; game content is identical.")
  return manifest,[target,sai_target,RELEASE/"moe-update.json",RELEASE/"moe-update.json.sig",RELEASE/"CHANGELOG.txt",bundle,helper]
 
 def publish(manifest,files):
@@ -82,7 +103,7 @@ def publish(manifest,files):
  try:release=api("/repos/"+REPO+"/releases/tags/"+tag)
  except urllib.error.HTTPError as e:
   if e.code!=404:raise
-  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B15 Memories of Eternity offline playtest","body":manifest["changelog"],"draft":True,"prerelease":False})
+  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B18 Memories of Eternity offline playtest","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}

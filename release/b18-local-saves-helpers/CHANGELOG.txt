@@ -1,0 +1,15 @@
+B18 - Local saves, original rewards and offline helpers
+
+Three independent local saves now appear in Settings. Existing progress becomes Save 1. Switching saves closes the game; reopen it to load the selected save. Each save keeps its own Captain name, progress, currencies, inventory and settings. Captain names can be changed freely using 2 to 10 plain characters. Delete Save requires typing RESET and affects only the selected save, with a local recovery copy retained.
+
+The original mission friend picker now offers eight generated, compatible Pixie/mecha helpers for eligible Story, Daily and normal Temple battles. Helpers use the existing extra friend slot and remain temporary. Social friend screens stay hidden.
+
+Future mission clear, mastery and new-star rewards return to the original archived amounts. Previously earned balances and outstanding rewards are retained. The separate Star Acquisition Reward tab keeps its original requirements and current Gem rewards. Zero AP/BP manual content costs and existing regeneration settings remain.
+
+This release also includes B16/B17 fixes and additions: reliable item/parts/genic-seed delivery, pending inventory rewards, offline enemy drops, Temple reward cards, and supported random boxes/tickets. Missing original server loot odds use the documented offline replacement rules.
+
+The title-screen button reads UPDATE and matches the game interface. Captain Name and the chosen name are enlarged above the Settings panel divider; Build B18 is below. Reset and name editing use the original game dialogs.
+
+Keep the existing game installed. Use Update on an updater-enabled game title screen. Older or supported SAI-signed installations can use MOE-Android-Update-Installer.apk, then approve Android's normal installation prompt. Existing compatible asset splits and local saves are retained. Checking for updates is optional; the game remains playable offline. Do not uninstall or clear game data to update.
+
+The installer supports the normal offline-playtest certificate and the standard SAI certificate. Unknown package/signing identities remain rejected. Android 5+ with 32-bit ARM app support is required. Verification uses an Android 11 emulator; physical-phone compatibility is not directly tested. Unsupported Raid/ExploreShip/Guardian and other previously documented modes remain unavailable. A full manually completed helper mission has not been exercised; helper selection, battle deployment and controls were verified, and reward logic passed separate engine checks.

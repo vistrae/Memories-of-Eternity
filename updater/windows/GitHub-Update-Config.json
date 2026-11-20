@@ -3,7 +3,7 @@
   "repository": "vistrae/Memories-of-Eternity",
   "channel": "stable",
   "updater_version": 1,
-  "installed_sequence": 15,
+  "installed_sequence": 18,
   "application_id": "com.nexon.moe.global",
   "asset_format": "unity5-global-51",
   "save_schema_version": 1,

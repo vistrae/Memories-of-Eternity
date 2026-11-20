@@ -1,0 +1,28 @@
+MEMORIES OF ETERNITY - INTERFACE DESIGN GUIDELINES
+Standing project direction - November 20, 2026
+
+All added or changed interfaces should match the original game's design.
+These guidelines apply to interfaces controlled by the game. Installation, permission and other operating-system dialogs retain their platform appearance.
+
+Use the original interface assets
+- Prefer the existing NGUI prefabs, atlases, sliced sprites, labels and controls. Reuse the original popup frame, button and input-field components where available.
+- Work from development copies. Do not alter the original I: asset archive.
+- If a control cannot directly reuse an original asset, match an original screen's colors, frame geometry, spacing and states, then verify the result in the game.
+
+Keep the established appearance
+- Use the original dark-blue panels, cyan borders and highlights, beveled science-fiction frames, and original button shapes.
+- Use the existing game font assets, sizes, white/light labels, shadows and outlines appropriate to the corresponding screen. Preserve selected, unselected and disabled states.
+- Align new controls to the screen's existing grid and spacing. Keep labels readable at the intended game resolution and aspect ratio; avoid clipped text, overlapping touch areas and crowded panels.
+- Use concise player-facing copy and familiar labels. Keep implementation details out of ordinary game screens.
+
+Current application examples
+- Captain name: present the editable per-save name in the Settings interface, using the game's panel, input and confirmation styling.
+- Delete Save: use the original blue popup frame, explain which Save1/Save2/Save3 will be reset, retain typed RESET and Cancel/Delete controls, and affect only the selected slot.
+- Save slots: fit Save1/Save2/Save3 into the existing Settings button arrangement, with clear original-style active/inactive states.
+- Offline helpers: use the existing friend-selection picker, character portraits, mecha rows and selection states. Adding helper data does not re-enable social friends interfaces.
+- Title update: use the singular Update label, rendered UPDATE, with styling that matches the title-screen interface. Retain title-only placement and the existing offline-capable update behavior.
+
+Verify each change
+- Review the actual in-game screen and interaction, including long permitted names, all save slots, selected/disabled states and any confirmation popup that changed.
+- Preserve existing navigation, offline play and save handling unless a separate requested feature intentionally changes them.
+- Record final screenshots, observed behavior and remaining unverified areas in that build's notes. A mockup or a compiled control alone does not establish a working final interface.

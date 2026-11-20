@@ -19,20 +19,105 @@ import java.util.*;
 
 public final class PhoneUpdater {
  static final String REPO="vistrae/Memories-of-Eternity", PKG="com.nexon.moe.global", FORMAT="unity5-global-51";
- static final int CLIENT=15;
+ static final int CLIENT=18;
  static final String MODULUS="qivjJ5OkgDAM050wsGwCRBraDmgrfDVG1URnnjrUlMhVyBhfe28pQ4zpjMcfJuL70V0wey0za9KKulxBrF/o9c7EtAVwZignltYRCLIrUCa7rGZHExJ4K1HaVzfdUX8kcDKNt84nNErn+IkKYCteSCDGR0qrih5KHAFXeh96jjDRY/VnMqsnICYjyrJA8BntXih7FxV22dTjmeNrcjBWatJfnOXmvXbaI7mX3now97LHZ6JDGr5ExETp8E0E48tAycVz5qxXgmuL2VKV9TfTjFi/uZKmC4CrmSbPP5mn/36uNUaaAcMEVZi+Hx3p8Wg63QXLeYmG7xogWuNpZzJbifBI30jYT58I64LPQCKDlweZSz9Wwdsg04GHA0S+rjG0uby1Q+Ljt/hYlRqyyEv27HSCeL4/II0DP6kQlW3oJ7AVfBEof1NPSxGKjoOK9QBO+LeeK3ArkWU+Le5qnPDjQQAQ0QHksR2hhIZ9UyvOpk/5/yoYf3LSAF8h+ynEKHSR";
  static boolean attached, busy;
  static Activity host;
  static Button updateButton;
  static File root;
  static ProgressDialog progress;
+ // A code-drawn title control keeps Android accessibility and the existing touch bounds.
+ // Chamfered edges, cyan trim and blue scanlines follow the original game panels.
+ static final class UpdateButtonSkin extends android.graphics.drawable.Drawable {
+  final float density;
+  final android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+  final android.graphics.Path shape=new android.graphics.Path();
+  final android.graphics.Path inner=new android.graphics.Path();
+  final android.graphics.RectF frame=new android.graphics.RectF();
+  final android.graphics.RectF body=new android.graphics.RectF();
+  int opacity=255;
+  boolean pressed,focused,enabled=true;
+  UpdateButtonSkin(float density){this.density=density;}
+  float dp(float value){return value*density;}
+  void bevel(android.graphics.Path path,android.graphics.RectF bounds,float cut){
+   path.reset();path.moveTo(bounds.left+cut,bounds.top);path.lineTo(bounds.right-cut,bounds.top);
+   path.lineTo(bounds.right,bounds.top+cut);path.lineTo(bounds.right,bounds.bottom-cut);
+   path.lineTo(bounds.right-cut,bounds.bottom);path.lineTo(bounds.left+cut,bounds.bottom);
+   path.lineTo(bounds.left,bounds.bottom-cut);path.lineTo(bounds.left,bounds.top+cut);path.close();
+  }
+  void color(int color,android.graphics.Paint.Style style,float width){
+   paint.setShader(null);paint.setColor(color);paint.setAlpha(android.graphics.Color.alpha(color)*opacity/255);
+   paint.setStyle(style);paint.setStrokeWidth(width);
+  }
+  public boolean isStateful(){return true;}
+  protected boolean onStateChange(int[] states){
+   boolean nextPressed=false,nextFocused=false,nextEnabled=false;
+   for(int state:states){
+    if(state==android.R.attr.state_pressed)nextPressed=true;
+    if(state==android.R.attr.state_focused||state==android.R.attr.state_hovered)nextFocused=true;
+    if(state==android.R.attr.state_enabled)nextEnabled=true;
+   }
+   if(pressed==nextPressed&&focused==nextFocused&&enabled==nextEnabled)return false;
+   pressed=nextPressed;focused=nextFocused;enabled=nextEnabled;invalidateSelf();return true;
+  }
+  public void draw(android.graphics.Canvas canvas){
+   android.graphics.Rect bounds=getBounds();
+   frame.set(bounds.left+dp(4),bounds.top+dp(5),bounds.right-dp(4),bounds.bottom-dp(5));
+   if(frame.width()<=dp(12)||frame.height()<=dp(12))return;
+   float cut=Math.min(dp(6),frame.height()*.22f);
+   bevel(shape,frame,cut);
+   color(0xb3001635,android.graphics.Paint.Style.STROKE,dp(4));canvas.drawPath(shape,paint);
+   color(enabled?0x5072eaff:0x304e728a,android.graphics.Paint.Style.STROKE,dp(2.8f));canvas.drawPath(shape,paint);
+   color(enabled?0xff35d9ff:0xff50778f,android.graphics.Paint.Style.FILL,0);canvas.drawPath(shape,paint);
+   body.set(frame);body.inset(dp(1.2f),dp(1.2f));bevel(inner,body,Math.max(dp(2),cut-dp(.6f)));
+   paint.setStyle(android.graphics.Paint.Style.FILL);paint.setAlpha(opacity);
+   paint.setShader(new android.graphics.LinearGradient(0,body.top,0,body.bottom,
+    enabled?(pressed?new int[]{0xff085e99,0xff073969,0xff051d40}:new int[]{0xff138dcb,0xff075a98,0xff052b5c}):
+     new int[]{0xff234c68,0xff153850,0xff10283d},new float[]{0,.48f,1},android.graphics.Shader.TileMode.CLAMP));
+   canvas.drawPath(inner,paint);
+   int saved=canvas.save();canvas.clipPath(inner);
+   color(enabled?0x174adfff:0x103d748e,android.graphics.Paint.Style.STROKE,dp(.5f));
+   for(float y=body.top+dp(4);y<body.bottom;y+=dp(3))canvas.drawLine(body.left,y,body.right,y,paint);
+   color(enabled?0xff95edff:0xff53778c,android.graphics.Paint.Style.STROKE,dp(.8f));
+   canvas.drawLine(body.left+cut,body.top+dp(.9f),body.right-cut,body.top+dp(.9f),paint);
+   color(0xb0001a3b,android.graphics.Paint.Style.STROKE,dp(1));
+   canvas.drawLine(body.left+cut,body.bottom-dp(1),body.right-cut,body.bottom-dp(1),paint);
+   color(enabled?0xff65eaff:0xff527c92,android.graphics.Paint.Style.STROKE,dp(1.3f));
+   canvas.drawLine(body.left+cut+dp(2),body.top+dp(2.4f),body.left+cut+dp(14),body.top+dp(2.4f),paint);
+   canvas.drawLine(body.right-cut-dp(10),body.bottom-dp(2.4f),body.right-cut-dp(2),body.bottom-dp(2.4f),paint);
+   canvas.restoreToCount(saved);
+   color(enabled?(focused?0xffe1fcff:pressed?0xffc2faff:0xff5ce5ff):0xff527c92,
+    android.graphics.Paint.Style.STROKE,dp(focused?1.8f:.85f));canvas.drawPath(shape,paint);
+  }
+  public void setAlpha(int alpha){opacity=Math.max(0,Math.min(255,alpha));invalidateSelf();}
+  public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);invalidateSelf();}
+  public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
+ }
+ static void styleUpdateButton(Button button){
+  int left=button.getPaddingLeft(),top=button.getPaddingTop(),right=button.getPaddingRight(),bottom=button.getPaddingBottom();
+  int minWidth=button.getMinWidth(),minHeight=button.getMinHeight();
+  int viewMinWidth=button.getMinimumWidth(),viewMinHeight=button.getMinimumHeight();
+  button.setBackground(new UpdateButtonSkin(button.getResources().getDisplayMetrics().density));
+  button.setPadding(left,top,right,bottom);button.setMinWidth(minWidth);button.setMinHeight(minHeight);
+  button.setMinimumWidth(viewMinWidth);button.setMinimumHeight(viewMinHeight);
+  button.setStateListAnimator(null);button.setElevation(0);button.setAlpha(1f);
+  button.setText("UPDATE");button.setAllCaps(false);button.setTextSize(11);button.setSingleLine(true);
+  button.setTypeface(android.graphics.Typeface.create("sans-serif-condensed",android.graphics.Typeface.BOLD));
+  button.setLetterSpacing(.045f);button.setGravity(Gravity.CENTER);
+  button.setTextColor(new android.content.res.ColorStateList(new int[][]{new int[]{-android.R.attr.state_enabled},new int[0]},new int[]{0xff8da9bb,0xffffffff}));
+  float density=button.getResources().getDisplayMetrics().density;
+  button.setShadowLayer(density,0,density,0xff001c3b);button.setContentDescription("Update");
+ }
  static void ui(Runnable r){host.runOnUiThread(r);}
  static void message(final String s){ui(new Runnable(){public void run(){new AlertDialog.Builder(host).setTitle("Game updates").setMessage(s).setPositiveButton("OK",null).show();}});}
  public static void attach(final Activity a){a.runOnUiThread(new Runnable(){public void run(){
   if(attached&&host==a&&updateButton!=null&&updateButton.getParent()!=null)return;
   if(updateButton!=null&&updateButton.getParent() instanceof ViewGroup)((ViewGroup)updateButton.getParent()).removeView(updateButton);
   attached=true;host=a;root=new File(a.getFilesDir(),"moe-updates");root.mkdirs();
-  Button b=new Button(a);updateButton=b;b.setText("Updates");b.setTextSize(11);b.setAlpha(.8f);
+  if(PKG.equals(a.getPackageName()))try{SaveSlots.recover(a);}catch(Exception error){
+   new AlertDialog.Builder(a).setTitle("Local save recovery").setMessage(error.getMessage()+"\n\nExisting progress was not overwritten. Save-slot switching is unavailable until recovery succeeds.").setPositiveButton("OK",null).show();
+  }
+  Button b=new Button(a);updateButton=b;b.setText("Update");b.setTextSize(11);styleUpdateButton(b);
   android.widget.FrameLayout.LayoutParams p=new android.widget.FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.RIGHT);
   a.addContentView(b,p);b.setOnClickListener(new View.OnClickListener(){public void onClick(View v){menu();}});
   if(new File(root,"pending-manifest.json").exists())new Handler().postDelayed(new Runnable(){public void run(){finishPending();}},1200);
@@ -201,29 +286,24 @@ public final class PhoneUpdater {
  }catch(Exception e){message("Could not start installation: "+e.getMessage()+". Your game and save are unchanged.");}}
  static void restore(){new AlertDialog.Builder(host).setTitle("Restore previous assets?").setMessage("Restore the previous asset selection and reopen the game. Your current save will be kept.").setPositiveButton("Restore",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){try{File f=new File(root,"previous-active.json");if(!f.exists())throw new IOException("No previous asset selection");byte[] b=read(f);if(new String(b,"UTF-8").equals("null"))new AtomicFile(new File(root,"active.json")).delete();else atomic(new File(root,"active.json"),b);message("Previous assets selected. Close and reopen the game.");}catch(Exception e){message(e.getMessage());}}}).setNegativeButton("Cancel",null).show();}
  public static void confirmSaveReset(final Activity a,final String target){a.runOnUiThread(new Runnable(){public void run(){
+  final int selectedSlot;
+  try{selectedSlot=SaveSlots.activeSaveSlot(a);}catch(Exception error){
+   new AlertDialog.Builder(a).setTitle("Save unavailable").setMessage("Could not identify the selected save. Nothing was deleted.").setPositiveButton("OK",null).show();return;
+  }
   final EditText input=new EditText(a);input.setSingleLine(true);input.setHint("Type RESET");
-  final AlertDialog dialog=new AlertDialog.Builder(a).setTitle("Reset Local Save")
-   .setMessage("This resets your local progress, roster, currencies and settings so you can start fresh. Installed game files and updates are kept. A recovery copy is saved on this device. The game will close after resetting.\n\nType RESET to confirm.")
+  final AlertDialog dialog=new AlertDialog.Builder(a).setTitle("Reset Save "+selectedSlot)
+   .setMessage("This resets only Save "+selectedSlot+": its progress, roster, currencies, tutorial and settings. Your other saves, installed game files and updates are kept. A recovery copy is saved on this device. The game will close. Reopen it to start fresh in Save "+selectedSlot+".\n\nType RESET to confirm.")
    .setView(input).setNegativeButton("Cancel",null).setPositiveButton("Reset Save",null).create();
   dialog.setOnShowListener(new DialogInterface.OnShowListener(){public void onShow(DialogInterface d){dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener(){public void onClick(View v){
    if(!input.getText().toString().trim().equalsIgnoreCase("RESET")){input.setError("Type RESET to confirm");return;}
-   try{Class.forName("com.unity3d.player.UnityPlayer").getMethod("UnitySendMessage",String.class,String.class,String.class).invoke(null,target,"OnConfirmLocalSaveReset","RESET");dialog.dismiss();}
+   try{if(SaveSlots.activeSaveSlot(a)!=selectedSlot)throw new IOException("Selected save changed");Class.forName("com.unity3d.player.UnityPlayer").getMethod("UnitySendMessage",String.class,String.class,String.class).invoke(null,target,"OnConfirmLocalSaveReset","RESET");dialog.dismiss();}
    catch(Exception e){new AlertDialog.Builder(a).setMessage("Could not request reset. No save was deleted.").setPositiveButton("OK",null).show();}
   }});}});dialog.show();
  }});}
- public static String backupSaveForReset(Activity a)throws Exception{
-  File prefs=new File(a.getApplicationInfo().dataDir,"shared_prefs"),current=new File(prefs,PKG+".v2.playerprefs.xml");
-  if(!current.isFile())throw new IOException("Local save preferences are unavailable");
-  File dest=new File(a.getFilesDir(),"moe-save-backups/"+System.currentTimeMillis());dest.mkdirs();
-  File[] all=prefs.listFiles();if(all==null)throw new IOException("Cannot read local save preferences");
-  for(File f:all)if(f.isFile())copy(f,new File(dest,f.getName()));
-  if(!sha(current).equals(sha(new File(dest,current.getName()))))throw new IOException("Recovery copy verification failed");
-  return dest.getAbsolutePath();
- }
- public static void closeAfterSaveReset(Activity a)throws Exception{
-  // Unity 5 can return before its preference write reaches disk. Commit synchronously before exiting.
-  if(!a.getSharedPreferences(PKG+".v2.playerprefs",Context.MODE_PRIVATE).edit().clear().commit())throw new IOException("Could not flush reset preferences");
-  android.os.Process.killProcess(android.os.Process.myPid());System.exit(0);
- }
+ public static int activeSaveSlot(Activity a)throws Exception{return SaveSlots.activeSaveSlot(a);}
+ public static boolean switchSaveSlot(Activity a,int target)throws Exception{return SaveSlots.switchSaveSlot(a,target);}
+ public static String backupSaveForReset(Activity a)throws Exception{return SaveSlots.backupSaveForReset(a);}
+ public static void closeAfterSaveReset(Activity a)throws Exception{SaveSlots.closeAfterSaveReset(a);}
+
 
 }

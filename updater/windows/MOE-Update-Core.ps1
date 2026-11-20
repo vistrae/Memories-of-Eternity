@@ -1,4 +1,4 @@
-Set-StrictMode -Version 2
+﻿Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
 $script:MOEPackage = 'com.nexon.moe.global'
 $script:MOEFormat = 'unity5-global-51'

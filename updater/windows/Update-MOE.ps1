@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('Check','Update','Rollback')][string]$Mode='Check',
     [string]$ConfigPath,
     [string]$CacheRoot,

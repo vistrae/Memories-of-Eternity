@@ -1,7 +1,7 @@
 B12 - GitHub updates for the Windows playtest
 
 Repository: https://github.com/vistrae/Memories-of-Eternity
-Publication status: prepared locally; GitHub currently rejects repository writes with HTTP 403. No live release is claimed.
+Publication status: Published and verified: https://github.com/vistrae/Memories-of-Eternity/releases/tag/b12-github-updates. Production updater verified signature, full APK size, and SHA256 without changing the installed game or save.
 
 Signed update manifests, verified downloads, reusable download cache, and asset overlays are implemented. Launcher checks can be skipped; offline play remains available. Base APK updates retain installed asset splits and existing saves. Rollback retains the current save. APK and save backups are kept before updates. Private signing keys are not included in release packages.
 
@@ -12,3 +12,4 @@ Scope: Windows launcher plus Android client in the existing emulator. No direct 
 Launch: Launch-MOE.cmd. Manual checks: Update-MOE.ps1 -Mode Check. Rollback: Update-MOE.ps1 -Mode Rollback. Bootstrap ZIP belongs in the existing outputs folder; keep the full existing project installation.
 
 Repository setup: extract MOE-GitHub-Update-Repository-Setup.zip and commit its contents, including .github/workflows/publish-playtest.yml, to the empty repository main branch. Enable Actions with read/write workflow permissions. The workflow reconstructs and verifies the signed B12 APK and publishes its release files. Private keys are never uploaded. Future releases are signed locally using New-MOERelease.ps1.
+

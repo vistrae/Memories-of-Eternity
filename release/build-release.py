@@ -1,4 +1,4 @@
-"""Reproduce the already signed B12 APK and publish it without exposing signing keys."""
+﻿"""Reproduce the already signed B12 APK and publish it without exposing signing keys."""
 import argparse,base64,hashlib,http.cookiejar,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from html.parser import HTMLParser
 from pathlib import Path
@@ -32,6 +32,7 @@ def download_source():
  return data
 def build(source=None):
  import bsdiff4
+ (RELEASE/"moe-update.json").write_bytes(base64.b64decode((RELEASE/"moe-update.json.b64").read_text(),validate=True))
  manifest=json.loads((RELEASE/"moe-update.json").read_text(encoding="utf-8-sig"))
  original=Path(source).read_bytes() if source else download_source()
  if sha(original)!=SOURCE_SHA:raise RuntimeError("Wrong bootstrap APK")
@@ -64,7 +65,12 @@ def publish(manifest,files):
   if e.code!=404:raise
   release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B12 GitHub updater","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
-  print("Release already published; immutable release left unchanged: "+release["html_url"]);return
+  assets=api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")
+  prior=next((a for a in assets if a["name"]=="moe-update.json"),None)
+  if tag!="b12-github-updates" or not prior or prior.get("digest")!="sha256:2ff315af7d0a57790e6ecf63956a7519ecfa2b0ff39853327a503015d1778649":
+   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
+  # One-time repair only for the exact first-publication newline defect.
+  release=api("/repos/"+REPO+"/releases/"+str(release["id"]),"PATCH",{"draft":True})
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}
  for p in files:
   if p.name in existing:api("/repos/"+REPO+"/releases/assets/"+str(existing[p.name]["id"]),"DELETE")

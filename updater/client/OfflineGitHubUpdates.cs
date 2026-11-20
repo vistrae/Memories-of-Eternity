@@ -120,3 +120,14 @@ public static partial class OfflineCampaign {
   } catch(Exception e) { Debug.LogWarning("Optional phone updater unavailable: "+e.Message); }
  }
 }
+
+public static partial class OfflineCampaign {
+ private static void SetPhoneUpdatesVisible(bool visible) {
+  if(Application.platform != RuntimePlatform.Android)return;
+  try {
+   using(var unity=new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+   using(var activity=unity.GetStatic<AndroidJavaObject>("currentActivity"))
+   using(var updater=new AndroidJavaClass("com.moe.offline.PhoneUpdater"))updater.CallStatic("setVisible",activity,visible);
+  } catch(Exception e) { Debug.LogWarning("Phone update visibility unavailable: "+e.Message); }
+ }
+}

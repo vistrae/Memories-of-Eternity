@@ -1,72 +1,29 @@
 # Memories of Eternity offline playtest updates
 
-B13 adds Android phone updates and repairs Start on Windows loose-asset installations.
+## Android phones with an existing offline installation
 
-## Existing Android phone installations
+Download MOE-Android-Update-Installer.apk from the latest release and install the small helper. Keep the existing MOE game installed. Open MOE Update Installer, check for updates, download the verified update, and approve Android's installation prompt. If asked, allow the helper to install updates, return, and check again. Existing saves and installed asset splits are retained. Do not uninstall the game or clear its data. No USB debugging is needed.
 
-Download MOE-Android-Update-Installer.apk from the latest GitHub release and install this small helper on the phone. Keep the existing MOE game installed. Open MOE Update Installer, check for updates, and approve downloading the verified game update. If asked, allow this source to install updates, return, and check again. Approve Android's game update prompt. Existing saves and installed resource splits are retained. No USB debugging is needed. The helper requires an existing compatible com.nexon.moe.global installation signed with the same offline key.
+After updating, use Updates on the game's title screen for future updates. Checking is optional. Offline play remains available and network failures leave the current game usable. The button is hidden after Start. Android still requires approval for APK installation.
 
-After B13 is installed, use the game's Updates button for future releases. Checking is optional; offline play remains available. APK installation always needs Android approval. Asset-only updates are verified and activated for the next game restart. Restore assets changes the previous asset selection and keeps the current save. Never uninstall the game or clear its data when updating.
+The helper requires an existing com.nexon.moe.global offline installation with the matching signing identity and package version. Android 5 or newer and support for 32-bit ARM apps are required. Validation used an Android 11 emulator; physical-phone compatibility is not yet confirmed. The helper is intended for the initial APK bootstrap; use the game itself for future content updates.
 
-Android 5 or newer and support for 32-bit ARM apps are required by this archive. Physical phone compatibility remains to be tested. The phone updater was tested on an Android 11 emulator.
+## Windows playtest
 
+Use Launch-MOE.cmd in the existing playtest outputs folder. The launcher checks GitHub and can continue offline when checks fail. Launch-MOE.ps1 -SkipUpdateCheck skips checking. The Windows ZIP includes updater files and the base APK; it requires the existing project/emulator/assets installation.
 
-The Windows playtest launcher checks this repository for signed GitHub Releases.
-The game remains playable offline. Network checks and downloads run on Windows,
-while the emulator remains offline.
+Update-MOE.ps1 -Mode Check checks manually. Update-MOE.ps1 -Mode Rollback restores previous game files while retaining the current save. Installed APK and save backups are kept before Windows updates. Android provides previous asset-selection restoration; it does not silently overwrite saves from a backup.
 
-## Existing Windows installation
+## Verification and asset updates
 
-Use the updated Launch-MOE.cmd and the updater files in the existing playtest
-outputs folder. Start normally to check for an update. Decline an update to keep
-playing the installed version. A failed check or download keeps the last working
-game. Run Launch-MOE.ps1 -SkipUpdateCheck to skip the network check.
+Release manifests are signed with a pinned RSA key. Downloads are checked against signed sizes and SHA256 values. APK updates use Android install sessions that inherit existing resource splits. Compatible asset updates use a private cache and atomic asset selection, without modifying original installed assets or saves. Corrupt overlays fall back to original assets. Opening/prologue movie replacement is excluded from this asset format. Engine format, signing identity, package version, or save-schema changes need compatible migration work.
 
-The first updater-enabled client is B12. Older launchers need this one-time
-bootstrap update. This package uses the existing dedicated emulator and installed
-assets; it does not include or replace the emulator.
+## Publishing
 
-## What updates
+New-MOERelease.ps1 signs future releases locally. Keep the private signing XML and Android keystore private; neither belongs in this repository. Current packaging reconstructs the already-signed APK from a verified public bootstrap and a binary delta. Signed manifest bytes are stored in base64 to preserve them exactly. GitHub Actions verifies the reconstructed APK before uploading and publishing release files using its temporary token. Existing successful releases remain immutable.
 
-- New APKs replace the base APK while retaining the existing asset splits.
-- Compatible asset changes download individually and override the installed
-  assets from a separate private update folder.
-- Downloads require a valid release signature, expected size and SHA256.
-- Original assets and save files are not overwritten by asset patches.
-- The installed APK and shared preferences are backed up before applying changes.
-- Update-MOE.ps1 -Mode Rollback restores previous game files and keeps the current
-  save. Save backups are for recovery, not automatically restored over progress.
+APK changes still need an in-place Android installation. The updater avoids reinstalling the complete asset collection; asset-only releases can download just changed files.
 
-This initial implementation targets the Windows emulator workflow. It does not
-add a direct GitHub installer inside the phone app. Opening and prologue movie
-replacement is excluded from the first asset-patch format because those movies
-use a separate legacy path. New engine formats, Android version-code changes,
-and save-schema changes require a compatible bootstrap release.
+## B14 additions
 
-## Releases
-
-https://github.com/vistrae/Memories-of-Eternity/releases
-
-The manifest, moe-update.json, contains a monotonically increasing sequence,
-compatibility identifiers, changelog, an optional base APK, and changed asset
-paths. moe-update.json.sig is its detached RSA SHA256 signature.
-
-New-MOERelease.ps1 creates and signs future update packages locally. Keep the
-private update-signing key and Android APK signing keystore on the publisher's
-machine. Neither private key is included in this repository or the release.
-
-B12 uses the same Android package ID, signing identity and Android package version
-as the installed asset splits. Its separate updater sequence is 12.
-
-## Reproducible bootstrap
-
-The release workflow downloads the previously shared public bootstrap APK,
-checks its exact SHA256, applies a small binary delta, and verifies the resulting
-already-signed B12 APK against the signed release manifest. No signing key or
-long-lived access token is required in the workflow. GitHub's temporary Actions
-token uploads the verified files to a draft release and publishes it only after
-the upload checks pass.
-
-APK changes still require an in-place Android update. This updater avoids
-reinstalling the complete asset package. Offline replacement EXP and other
-restored-game limitations are described in the changelog.
+The Team editor handles empty teams. All 608 archived outfit offers stay available without date limits; original non-date unlock requirements remain enforced. The 25 originally unpriced offers cost 1,200 Gems. Options offers Reset Local Save with a typed RESET confirmation, a verified recovery copy, and installed assets retained. Resetting closes the game; reopen to start fresh. Gem packages now grant 10/75/240/550/1050/1870/3000 Gems for 5/15/30/50/75/110/150 AP.

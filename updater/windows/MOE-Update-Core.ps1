@@ -189,6 +189,24 @@ function Invoke-MOEAdb([string]$Adb, [string]$Serial, [string[]]$Arguments) {
     if ($LASTEXITCODE) { throw ('Android command failed: ' + ($result -join ' ')) }
     return ($result -join [Environment]::NewLine)
 }
+function Assert-MOEEmulatorRoot([string]$Adb, [string]$Serial) {
+    # Only the dedicated Windows test AVDs support this host-side updater.
+    if ($Serial -notmatch '^emulator-[0-9]+$') { throw 'Updates are restricted to the dedicated MOE emulator.' }
+    $name = Invoke-MOEAdb $Adb $Serial @('emu','avd','name')
+    if ($name -notmatch '(?m)^MOE(?:-Split-Test)?\s*$') { throw 'Updates are restricted to the dedicated MOE emulator.' }
+    $uid = (Invoke-MOEAdb $Adb $Serial @('shell','id','-u')).Trim()
+    if ($uid -eq '0') { return }
+    [void](Invoke-MOEAdb $Adb $Serial @('root'))
+    # adbd restarts after root; wait for it to reconnect and prove private-save access.
+    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+        Start-Sleep -Seconds 1
+        try {
+            $uid = (Invoke-MOEAdb $Adb $Serial @('shell','id','-u')).Trim()
+            if ($uid -eq '0') { return }
+        } catch { }
+    }
+    throw 'The MOE emulator could not enable access to its local save. No update was installed.'
+}
 function Install-MOEBaseApk([string]$Adb, [string]$Serial, [string]$Apk, [switch]$Inherit) {
     if (!$Inherit) {
         [void](Invoke-MOEAdb $Adb $Serial @('install','-r',$Apk))
@@ -212,8 +230,7 @@ function Install-MOEBaseApk([string]$Adb, [string]$Serial, [string]$Apk, [switch
     }
 }
 function Apply-MOERelease($Candidate, [string]$BootstrapApk, [string]$CacheRoot, $Config, [string]$Adb, [string]$Serial) {
-    $name = Invoke-MOEAdb $Adb $Serial @('emu','avd','name')
-    if ($name -notmatch '(?m)^MOE(?:-Split-Test)?\s*$') { throw 'Updates are restricted to the dedicated MOE emulator.' }
+    Assert-MOEEmulatorRoot $Adb $Serial
     $installed = @(& $Adb -s $Serial shell pm path $script:MOEPackage 2>$null)
     $basePath = @($installed | Where-Object { $_ -match '/base.apk$' } | Select-Object -First 1)
     $exists = $basePath.Count -gt 0
@@ -261,11 +278,16 @@ function Apply-MOERelease($Candidate, [string]$BootstrapApk, [string]$CacheRoot,
         [void](Invoke-MOEAdb $Adb $Serial @('shell','am','force-stop',$script:MOEPackage))
         [void](Invoke-MOEAdb $Adb $Serial @('pull',$basePath,(Join-Path $backup 'base.apk')))
         $saveRemote = '/data/data/' + $script:MOEPackage + '/shared_prefs'
-        try { [void](Invoke-MOEAdb $Adb $Serial @('pull',$saveRemote,(Join-Path $backup 'shared_prefs'))) } catch {}
+        try { [void](Invoke-MOEAdb $Adb $Serial @('pull',$saveRemote,(Join-Path $backup 'shared_prefs'))) }
+        catch {
+            # A never-started client may have no preferences yet; an unreadable save must not be skipped.
+            if ($_.Exception.Message -notmatch 'No such file or directory') { throw }
+        }
     }
     $remoteRoot = $privateRoot + '/moe-updates'
     $oldPointerPath = Join-Path $backup 'previous-active.json'
-    try { [void](Invoke-MOEAdb $Adb $Serial @('pull',($remoteRoot+'/active.json'),$oldPointerPath)) } catch {}
+    try { [void](Invoke-MOEAdb $Adb $Serial @('pull',($remoteRoot+'/active.json'),$oldPointerPath)) }
+    catch { if ($_.Exception.Message -notmatch 'No such file or directory') { throw } }
     $installedNewBase = $false; $activated = $false
     try {
         if ($mustInstall) {
@@ -376,8 +398,7 @@ function Get-MOEUpdateSelection($Config, [string]$CacheRoot, [switch]$AcceptUpda
     }
 }
 function Undo-MOERelease([string]$CacheRoot, $Config, [string]$Adb, [string]$Serial) {
-    $name=Invoke-MOEAdb $Adb $Serial @('emu','avd','name')
-    if ($name -notmatch '(?m)^MOE(?:-Split-Test)?\s*$') { throw 'Rollback is restricted to the MOE emulator.' }
+    Assert-MOEEmulatorRoot $Adb $Serial
     $statePath=Join-Path $CacheRoot 'active-release.json'
     $state=Read-MOEJson $statePath
     $root=[IO.Path]::GetFullPath((Join-Path $CacheRoot 'backups'))+[IO.Path]::DirectorySeparatorChar

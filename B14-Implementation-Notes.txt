@@ -1,0 +1,19 @@
+B14 - Memories of Eternity title and hidden offline service controls
+
+Changes the title logo subtitle to MEMORIES OF ETERNITY using a replacement 256x256 logo texture and matching alpha mask. Removes the title-screen publisher logo, version label, and copyright line. Original archive files remain unchanged.
+
+Hides Notice and Customer Service from Sub Menu. Hides Restore Purchase, Link Account, and Log Out from Options. Keeps the User ID panel hidden and the Google Play controls disabled. Delete Account is replaced by Reset Local Save, with a typed RESET confirmation.
+
+The Updates button appears only on the title screen and disappears when Start is selected. It remains hidden in the lobby, missions, Hangar, and Options. Optional signed GitHub updates, offline play, save preservation, asset-split preservation, and the null-split startup fix from B13 are retained.
+
+The one-time Android installer is available for older compatible phone installations. Keep the existing game installed, install MOE-Android-Update-Installer.apk, check for updates, allow the installer as a source if prompted, return and check again, then approve Android's update prompt. Use the title-screen Updates button afterward. No USB debugging is required. Physical phone compatibility is not yet verified; the original client requires support for 32-bit ARM apps.
+
+Fixes the Team-tab loading hang when a saved team has no assigned Pixies. Empty teams select an empty slot safely and can be saved; duplicate/locked-pilot checks and battle-entry/team-cost checks remain enforced.
+
+Outfits: exposes all 608 archived offers without date restrictions, including limited/hidden offers. Original positive prices and non-date unlock requirements are retained. The 25 offers with no archived price cost 1,200 Gems each. Gem-only informational text is not treated as a gameplay requirement. Real episode, awakening-count, gift, owned-outfit and perfect-episode conditions are checked from local progress for both purchase and equipping. Existing ownership records remain intact; an outfit equipped before earning its requirements returns to the default appearance until unlocked. Awakened appearance still requires actual Pixie awakening.
+
+Reset Local Save: requires typing RESET (case-insensitive), creates and verifies a private recovery copy of preferences, clears local progress/settings, then closes the game. Reopen to start fresh. Installed assets, split APKs, verified update files and signing configuration stay in place. The retired membership/grace-period callbacks are disabled. Only the isolated test save is reset during validation.
+
+Gem shop packages updated (Gems/AP): 10/5, 75/15, 240/30, 550/50, 1050/75, 1870/110, 3000/150. The same central package values drive display and granted rewards.
+
+Windows updater: before installation or rollback, verifies private-save access on the dedicated MOE emulators. Failed save backups now stop installation instead of silently proceeding. Physical Android phones use the native updater and do not require root.

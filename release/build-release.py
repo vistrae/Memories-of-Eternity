@@ -1,35 +1,19 @@
-﻿"""Reproduce the already signed B13 APK and publish it without exposing signing keys."""
+"""Reproduce the already signed B14 APK and publish it without exposing signing keys."""
 import argparse,base64,hashlib,http.cookiejar,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from html.parser import HTMLParser
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-RELEASE=ROOT/"release"/"b13-android-updates"
+RELEASE=ROOT/"release"/"b14-title-updates"
 REPO="vistrae/Memories-of-Eternity"
 SOURCE_ID="1_yzhBArNNLWsym-bDcIbzmEhvlA17wBM"
-SOURCE_SHA="af25878c7e58d64929169db68675b4f4c3dbba5227bb96cba173515ca0de1caa"
+SOURCE_SHA="cf23d4212755f1878e4b6a9ffba78f8bb43ab2ecd1da5019d5301f1f2f605a63"
 def sha(data):return hashlib.sha256(data).hexdigest()
-class DownloadForm(HTMLParser):
- def __init__(self):super().__init__();self.action=None;self.fields={};self.active=False
- def handle_starttag(self,tag,attrs):
-  a=dict(attrs)
-  if tag=="form" and a.get("id")=="download-form":self.action=a.get("action");self.active=True
-  elif tag=="input" and self.active and "name" in a:self.fields[a["name"]]=a.get("value","")
- def handle_endtag(self,tag):
-  if tag=="form":self.active=False
 def download_source():
- opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
- url="https://drive.google.com/uc?export=download&id="+SOURCE_ID
- with opener.open(url,timeout=90) as response:
-  first=response.read(16384)
-  if first.startswith(b"PK"):data=first+response.read()
-  else:
-   parser=DownloadForm();parser.feed(first.decode("utf-8","replace"))
-   if not parser.action or urllib.parse.urlsplit(parser.action).hostname not in ("drive.usercontent.google.com","drive.google.com"):
-    raise RuntimeError("The public bootstrap source is unavailable; no release was published.")
-   url=parser.action+"?"+urllib.parse.urlencode(parser.fields)
-   with opener.open(url,timeout=180) as response:data=response.read(100*1024*1024+1)
- if sha(data)!=SOURCE_SHA:raise RuntimeError("Bootstrap source SHA256 mismatch.")
+ url="https://github.com/vistrae/Memories-of-Eternity/releases/download/b13-android-updates/moe-base.apk"
+ with urllib.request.urlopen(url,timeout=180) as response:data=response.read(100*1024*1024+1)
+ if sha(data)!=SOURCE_SHA:raise RuntimeError("Published B13 bootstrap SHA256 mismatch.")
  return data
+
 def build(source=None):
  import bsdiff4
  (RELEASE/"moe-update.json").write_bytes(base64.b64decode((RELEASE/"moe-update.json.b64").read_text(),validate=True))
@@ -41,13 +25,13 @@ def build(source=None):
  if len(apk)!=manifest["apk"]["size"] or sha(apk)!=manifest["apk"]["sha256"]:
   raise RuntimeError("Reconstructed signed APK failed verification.")
  target=RELEASE/"moe-base.apk";target.write_bytes(apk)
- bundle=RELEASE/"MOE-Windows-Updater-B13.zip"
+ bundle=RELEASE/"MOE-Windows-Updater-B14.zip"
  with zipfile.ZipFile(bundle,"w",zipfile.ZIP_DEFLATED,compresslevel=1) as z:
   for p in sorted((ROOT/"updater/windows").glob("*")):
    if p.is_file():z.write(p,p.name)
   z.write(target,"MOE-Offline-Campaign-Chapter13-Rewards.apk")
   z.write(ROOT/"README.md","GitHub-Updater-Readme.txt")
- print("Signed B13 APK reproduced and verified.")
+ print("Signed B14 APK reproduced and verified.")
  helper=RELEASE/"MOE-Android-Update-Installer.apk"
  helper.write_bytes(base64.b64decode((RELEASE/"phone-installer.apk.b64").read_text(),validate=True))
  if sha(helper.read_bytes())!="7300e7d3f9fc54b193a13eac3a47d6bc7652d18808d642498b528a29882fa0ea":raise RuntimeError("Phone installer checksum mismatch")
@@ -66,17 +50,8 @@ def publish(manifest,files):
  try:release=api("/repos/"+REPO+"/releases/tags/"+tag)
  except urllib.error.HTTPError as e:
   if e.code!=404:raise
-  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B13 GitHub updater","body":manifest["changelog"],"draft":True,"prerelease":False})
+  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B14 Memories of Eternity offline playtest","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
-  prior=next((a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets") if a["name"]=="MOE-Android-Update-Installer.apk"),None)
-  if tag=="b13-android-updates" and prior and prior.get("digest")=="sha256:b549bf3cd2cc6134ca2500313db3c96a1f7ec14b8365469dbf11c94b25ff7ff2":
-   helper=next(p for p in files if p.name=="MOE-Android-Update-Installer.apk")
-   api("/repos/"+REPO+"/releases/assets/"+str(prior["id"]),"DELETE")
-   url=release["upload_url"].split("{",1)[0]+"?name="+helper.name
-   req=urllib.request.Request(url,data=helper.read_bytes(),headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","User-Agent":"MOE-Release-Builder","Content-Type":"application/octet-stream"},method="POST")
-   with urllib.request.urlopen(req,timeout=180) as response:meta=json.load(response)
-   if meta["size"]!=helper.stat().st_size or meta.get("digest")!="sha256:"+sha(helper.read_bytes()):raise RuntimeError("Helper repair verification failed")
-   print("Corrected and verified the B13 phone bootstrap helper; signed game files unchanged.");return
   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}
  for p in files:

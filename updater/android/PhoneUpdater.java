@@ -19,21 +19,23 @@ import java.util.*;
 
 public final class PhoneUpdater {
  static final String REPO="vistrae/Memories-of-Eternity", PKG="com.nexon.moe.global", FORMAT="unity5-global-51";
- static final int CLIENT=13;
+ static final int CLIENT=14;
  static final String MODULUS="qivjJ5OkgDAM050wsGwCRBraDmgrfDVG1URnnjrUlMhVyBhfe28pQ4zpjMcfJuL70V0wey0za9KKulxBrF/o9c7EtAVwZignltYRCLIrUCa7rGZHExJ4K1HaVzfdUX8kcDKNt84nNErn+IkKYCteSCDGR0qrih5KHAFXeh96jjDRY/VnMqsnICYjyrJA8BntXih7FxV22dTjmeNrcjBWatJfnOXmvXbaI7mX3now97LHZ6JDGr5ExETp8E0E48tAycVz5qxXgmuL2VKV9TfTjFi/uZKmC4CrmSbPP5mn/36uNUaaAcMEVZi+Hx3p8Wg63QXLeYmG7xogWuNpZzJbifBI30jYT58I64LPQCKDlweZSz9Wwdsg04GHA0S+rjG0uby1Q+Ljt/hYlRqyyEv27HSCeL4/II0DP6kQlW3oJ7AVfBEof1NPSxGKjoOK9QBO+LeeK3ArkWU+Le5qnPDjQQAQ0QHksR2hhIZ9UyvOpk/5/yoYf3LSAF8h+ynEKHSR";
  static boolean attached, busy;
  static Activity host;
+ static Button updateButton;
  static File root;
  static ProgressDialog progress;
  static void ui(Runnable r){host.runOnUiThread(r);}
  static void message(final String s){ui(new Runnable(){public void run(){new AlertDialog.Builder(host).setTitle("Game updates").setMessage(s).setPositiveButton("OK",null).show();}});}
  public static void attach(final Activity a){a.runOnUiThread(new Runnable(){public void run(){
   if(attached)return;attached=true;host=a;root=new File(a.getFilesDir(),"moe-updates");root.mkdirs();
-  Button b=new Button(a);b.setText("Updates");b.setTextSize(11);b.setAlpha(.8f);
+  Button b=new Button(a);updateButton=b;b.setText("Updates");b.setTextSize(11);b.setAlpha(.8f);
   android.widget.FrameLayout.LayoutParams p=new android.widget.FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.RIGHT);
   a.addContentView(b,p);b.setOnClickListener(new View.OnClickListener(){public void onClick(View v){menu();}});
   if(new File(root,"pending-manifest.json").exists())new Handler().postDelayed(new Runnable(){public void run(){finishPending();}},1200);
  }});}
+ public static void setVisible(final Activity a,final boolean visible){a.runOnUiThread(new Runnable(){public void run(){if(updateButton!=null)updateButton.setVisibility(visible?View.VISIBLE:View.GONE);}});}
  static void menu(){new AlertDialog.Builder(host).setTitle("Offline playtest B"+CLIENT)
   .setMessage("Play offline at any time. Checking downloads only the files needed for an update. Your save stays on this phone.")
   .setPositiveButton("Check for updates",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){check();}})
@@ -114,4 +116,30 @@ public final class PhoneUpdater {
   }catch(Exception e){session.abandon();throw e;}finally{session.close();}
  }catch(Exception e){message("Could not start installation: "+e.getMessage()+". Your game and save are unchanged.");}}
  static void restore(){new AlertDialog.Builder(host).setTitle("Restore previous assets?").setMessage("Restore the previous asset selection and reopen the game. Your current save will be kept.").setPositiveButton("Restore",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){try{File f=new File(root,"previous-active.json");if(!f.exists())throw new IOException("No previous asset selection");byte[] b=read(f);if(new String(b,"UTF-8").equals("null"))new AtomicFile(new File(root,"active.json")).delete();else atomic(new File(root,"active.json"),b);message("Previous assets selected. Close and reopen the game.");}catch(Exception e){message(e.getMessage());}}}).setNegativeButton("Cancel",null).show();}
+ public static void confirmSaveReset(final Activity a,final String target){a.runOnUiThread(new Runnable(){public void run(){
+  final EditText input=new EditText(a);input.setSingleLine(true);input.setHint("Type RESET");
+  final AlertDialog dialog=new AlertDialog.Builder(a).setTitle("Reset Local Save")
+   .setMessage("This resets your local progress, roster, currencies and settings so you can start fresh. Installed game files and updates are kept. A recovery copy is saved on this device. The game will close after resetting.\n\nType RESET to confirm.")
+   .setView(input).setNegativeButton("Cancel",null).setPositiveButton("Reset Save",null).create();
+  dialog.setOnShowListener(new DialogInterface.OnShowListener(){public void onShow(DialogInterface d){dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener(){public void onClick(View v){
+   if(!input.getText().toString().trim().equalsIgnoreCase("RESET")){input.setError("Type RESET to confirm");return;}
+   try{Class.forName("com.unity3d.player.UnityPlayer").getMethod("UnitySendMessage",String.class,String.class,String.class).invoke(null,target,"OnConfirmLocalSaveReset","RESET");dialog.dismiss();}
+   catch(Exception e){new AlertDialog.Builder(a).setMessage("Could not request reset. No save was deleted.").setPositiveButton("OK",null).show();}
+  }});}});dialog.show();
+ }});}
+ public static String backupSaveForReset(Activity a)throws Exception{
+  File prefs=new File(a.getApplicationInfo().dataDir,"shared_prefs"),current=new File(prefs,PKG+".v2.playerprefs.xml");
+  if(!current.isFile())throw new IOException("Local save preferences are unavailable");
+  File dest=new File(a.getFilesDir(),"moe-save-backups/"+System.currentTimeMillis());dest.mkdirs();
+  File[] all=prefs.listFiles();if(all==null)throw new IOException("Cannot read local save preferences");
+  for(File f:all)if(f.isFile())copy(f,new File(dest,f.getName()));
+  if(!sha(current).equals(sha(new File(dest,current.getName()))))throw new IOException("Recovery copy verification failed");
+  return dest.getAbsolutePath();
+ }
+ public static void closeAfterSaveReset(Activity a)throws Exception{
+  // Unity 5 can return before its preference write reaches disk. Commit synchronously before exiting.
+  if(!a.getSharedPreferences(PKG+".v2.playerprefs",Context.MODE_PRIVATE).edit().clear().commit())throw new IOException("Could not flush reset preferences");
+  android.os.Process.killProcess(android.os.Process.myPid());System.exit(0);
+ }
+
 }

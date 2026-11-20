@@ -1,5 +1,16 @@
 # Memories of Eternity offline playtest updates
 
+B13 adds Android phone updates and repairs Start on Windows loose-asset installations.
+
+## Existing Android phone installations
+
+Download MOE-Android-Update-Installer.apk from the latest GitHub release and install this small helper on the phone. Keep the existing MOE game installed. Open MOE Update Installer, check for updates, and approve downloading the verified game update. If asked, allow this source to install updates, return, and check again. Approve Android's game update prompt. Existing saves and installed resource splits are retained. No USB debugging is needed. The helper requires an existing compatible com.nexon.moe.global installation signed with the same offline key.
+
+After B13 is installed, use the game's Updates button for future releases. Checking is optional; offline play remains available. APK installation always needs Android approval. Asset-only updates are verified and activated for the next game restart. Restore assets changes the previous asset selection and keeps the current save. Never uninstall the game or clear its data when updating.
+
+Android 5 or newer and support for 32-bit ARM apps are required by this archive. Physical phone compatibility remains to be tested. The phone updater was tested on an Android 11 emulator.
+
+
 The Windows playtest launcher checks this repository for signed GitHub Releases.
 The game remains playable offline. Network checks and downloads run on Windows,
 while the emulator remains offline.

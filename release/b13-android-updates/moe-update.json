@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "application_id": "com.nexon.moe.global",
+  "asset_format": "unity5-global-51",
+  "channel": "stable",
+  "save_schema_version": 1,
+  "min_updater_version": 1,
+  "sequence": 13,
+  "required_client_sequence": 13,
+  "release_id": "b13-android-updates",
+  "changelog": "B13 - Android phone updates, startup repair, and offline UI cleanup\n\nAdds an optional Updates menu to the Android game. Checks GitHub only when requested; offline play does not require update checks. Signed manifests, SHA256/size verification, private cache, save backups, atomic asset selection, and Android-confirmed in-place APK updates retain existing saves and resource splits. Pending assets activate only after the matching APK is installed. Asset selection can be restored without replacing the current save.\n\nA small MOE Android Update Installer bootstraps older phone installations without USB debugging or downloading all asset splits again. It requires an existing compatible game installation and Android's install approval. Install the helper once, check for updates, allow this source if asked, then check again and approve the game update. Future updates can use the game's Updates button. Do not uninstall the existing game or clear its data.\n\nFixes Start crash on loose-asset installations: Unity 5 attempted to read a null splitSourceDirs Java array before the managed fallback could run. The new code checks the JNI object before array conversion.\n\nDisabled: Sub Menu Notice and Customer Service; Options Restore Purchase, Link Account, Google Play login/logout, and Log Out. These controls are greyed out and their handlers are inert. Hides the complete User ID/account-link panel. Delete Account retains the original confirmation and Nexon account-service path; it is not an offline reset feature.\n\nValidation so far: 16 native Android updater checks passed. Android's source permission and update-confirmation screens were exercised. A phone-driven in-place installation retained all 32 resource splits and the save file stayed byte-for-byte unchanged. Windows loose-asset startup passed with the null-array fix. Physical phone testing is still required; the archived client uses 32-bit ARM native libraries and will not run on ARM64-only devices.\r\n",
+  "apk": {
+    "size": 69950216,
+    "sha256": "cf23d4212755f1878e4b6a9ffba78f8bb43ab2ecd1da5019d5301f1f2f605a63",
+    "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b13-android-updates/moe-base.apk"
+  },
+  "assets": [],
+  "remove_assets": []
+}

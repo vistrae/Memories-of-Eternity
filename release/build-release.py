@@ -1,9 +1,9 @@
-﻿"""Reproduce the already signed B12 APK and publish it without exposing signing keys."""
+"""Reproduce the already signed B13 APK and publish it without exposing signing keys."""
 import argparse,base64,hashlib,http.cookiejar,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from html.parser import HTMLParser
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-RELEASE=ROOT/"release"/"b12-github-updates"
+RELEASE=ROOT/"release"/"b13-android-updates"
 REPO="vistrae/Memories-of-Eternity"
 SOURCE_ID="1_yzhBArNNLWsym-bDcIbzmEhvlA17wBM"
 SOURCE_SHA="af25878c7e58d64929169db68675b4f4c3dbba5227bb96cba173515ca0de1caa"
@@ -41,14 +41,17 @@ def build(source=None):
  if len(apk)!=manifest["apk"]["size"] or sha(apk)!=manifest["apk"]["sha256"]:
   raise RuntimeError("Reconstructed signed APK failed verification.")
  target=RELEASE/"moe-base.apk";target.write_bytes(apk)
- bundle=RELEASE/"MOE-Windows-Updater-B12.zip"
+ bundle=RELEASE/"MOE-Windows-Updater-B13.zip"
  with zipfile.ZipFile(bundle,"w",zipfile.ZIP_DEFLATED,compresslevel=1) as z:
   for p in sorted((ROOT/"updater/windows").glob("*")):
    if p.is_file():z.write(p,p.name)
   z.write(target,"MOE-Offline-Campaign-Chapter13-Rewards.apk")
   z.write(ROOT/"README.md","GitHub-Updater-Readme.txt")
- print("Signed B12 APK reproduced and verified.")
- return manifest,[target,RELEASE/"moe-update.json",RELEASE/"moe-update.json.sig",RELEASE/"CHANGELOG.txt",bundle]
+ print("Signed B13 APK reproduced and verified.")
+ helper=RELEASE/"MOE-Android-Update-Installer.apk"
+ helper.write_bytes(base64.b64decode((RELEASE/"phone-installer.apk.b64").read_text(),validate=True))
+ if sha(helper.read_bytes())!="b549bf3cd2cc6134ca2500313db3c96a1f7ec14b8365469dbf11c94b25ff7ff2":raise RuntimeError("Phone installer checksum mismatch")
+ return manifest,[target,RELEASE/"moe-update.json",RELEASE/"moe-update.json.sig",RELEASE/"CHANGELOG.txt",bundle,helper]
 def publish(manifest,files):
  token=os.environ.get("GITHUB_TOKEN")
  if not token:raise RuntimeError("Publishing requires the GitHub Actions token.")
@@ -63,14 +66,9 @@ def publish(manifest,files):
  try:release=api("/repos/"+REPO+"/releases/tags/"+tag)
  except urllib.error.HTTPError as e:
   if e.code!=404:raise
-  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B12 GitHub updater","body":manifest["changelog"],"draft":True,"prerelease":False})
+  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B13 GitHub updater","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
-  assets=api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")
-  prior=next((a for a in assets if a["name"]=="moe-update.json"),None)
-  if tag!="b12-github-updates" or not prior or prior.get("digest")!="sha256:2ff315af7d0a57790e6ecf63956a7519ecfa2b0ff39853327a503015d1778649":
-   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
-  # One-time repair only for the exact first-publication newline defect.
-  release=api("/repos/"+REPO+"/releases/"+str(release["id"]),"PATCH",{"draft":True})
+  print("Release already published; immutable release left unchanged: "+release["html_url"]);return
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}
  for p in files:
   if p.name in existing:api("/repos/"+REPO+"/releases/assets/"+str(existing[p.name]["id"]),"DELETE")

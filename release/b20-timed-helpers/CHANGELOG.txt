@@ -1,0 +1,17 @@
+B20 - Complete offline helper roster and timed refresh
+
+All 26 archived playable Pixies, including Miku, are available as temporary offline helpers in the original selection screen. Their compatible mechas can reach US grade, using the highest eligible owned mecha grade when the roster is refreshed. Levels follow the Captain level and normal unit caps. Helpers do not become owned Pixies, mechas or team members.
+
+The roster is saved separately for each local save. Reopening the picker, changing eligible missions or restarting the game keeps the same helpers, mechas, levels and expiry. A free automatic refresh occurs every 30 minutes while the picker is open; elapsed time is caught up on the next opening after the picker or game has been closed. There is no closed-app background task. Grades and levels stay fixed until the next refresh.
+
+Refresh 100 Gems rerolls the compatible mechas, updates the roster snapshot and starts a new 30-minute timer. The button is gray and inactive below 100 Gems. Automatic expiry is free, including a click at the expiry boundary. Failed saves retain the previous roster, wallet and selected helper. The original game-style blue button and live countdown appear in the picker header.
+
+B20 includes the B19 correction that removed the helper pool's C/B-grade limitation. The Windows launcher also ignores an older cached release when a newer local build is bundled, retaining the stored cache for rollback.
+
+Retained B18 features include three independent local saves, per-save Captain names, selected-save typed RESET, original future mission reward amounts and the prior offline reward/loot fixes. The separate Star Acquisition Reward settings, zero AP/BP manual content costs, regeneration and existing progress are retained.
+
+Keep the existing game installed. Use Update on an updater-enabled title screen. Older or supported SAI-signed installations can use MOE-Android-Update-Installer.apk, then approve Android's installation prompt. Compatible installed asset splits and local saves are retained. Do not uninstall the game or clear its data to update. Checking for updates is optional and offline play remains available.
+
+The standalone installer is version 1.3 (code 4), with B20 support. Both the normal offline-playtest and standard SAI signing identities are supported; other identities remain rejected. Android 5+ with 32-bit ARM app support is required. The Windows ZIP requires the existing project/emulator/assets installation; this release does not contain a fresh full asset installation.
+
+Verification: 73 in-engine helper checks and 13 live production checks cover all 26 Pixies, grades C through US, persistent reopening and restart, exact 100-Gem payment, insufficient funds, save-failure rollback and a free rollover while the picker stays open. Checks use an Android 11 emulator; physical phones are not directly tested. No mission or battle was completed during the B20 refresh test. Previously documented unsupported battle modes remain unavailable.

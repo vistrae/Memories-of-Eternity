@@ -1,14 +1,14 @@
 # Memories of Eternity offline playtest updates
 
-## Current release: B18
+## Current release: B20
 
-B18 adds three independent local saves, editable Captain names, selected-save RESET, generated offline mission helpers, original future mission reward amounts and game-style interface changes. It includes the B16/B17 reward-delivery and offline-loot work. Existing progress and compatible installed asset splits are retained. Switching saves closes the game; reopen to load the selected profile. The update remains optional and offline play is retained.
+B20 includes all 26 playable Pixies as temporary helpers, with compatible mechas through US grade under the highest eligible owned-grade ceiling. Each save keeps a stable roster and a 30-minute timer across picker openings, missions and restarts. Automatic expiry is free; the original-style Refresh 100 Gems button rerolls the mechas and resets the timer. Levels and the grade ceiling are captured at refresh. The B18 local profiles, Captain names, selected-save RESET and original future mission rewards remain available. Existing saves and compatible resource splits are retained; offline play is preserved.
 
 ## Android phones with an existing offline installation
 
 Download MOE-Android-Update-Installer.apk from the latest release and update or install the small helper. Keep the existing MOE game installed. Open MOE Update Installer, check for updates, download the verified update, and approve Android's installation prompt. If asked, allow the helper to install updates, return, and check again. Existing saves and installed asset splits are retained. Do not uninstall the game or clear its data. No USB debugging is needed.
 
-B18 supports the original offline-playtest signing identity and the standard SAI signing identity. The installer selects a signed release APK only when its signing identity matches the installed game. Android's normal package, version, and certificate checks remain enforced. Other signing identities stay unsupported; use Installation details, then Copy details, to identify the installed package, version, and public certificate fingerprints. Do not uninstall an incompatible installation before preserving its save. For new installations, keep SAI's Sign APKs option disabled and preserve the supplied signatures.
+B20 supports the original offline-playtest signing identity and the standard SAI signing identity. The installer selects a signed release APK only when its signing identity matches the installed game. Android's normal package, version, and certificate checks remain enforced. Other signing identities stay unsupported; use Installation details, then Copy details, to identify the installed package, version, and public certificate fingerprints. Do not uninstall an incompatible installation before preserving its save. For new installations, keep SAI's Sign APKs option disabled and preserve the supplied signatures.
 
 After updating, use Update on the game's title screen for future updates. Checking is optional. Offline play remains available and network failures leave the current game usable. The button is hidden after Start. Android still requires approval for APK installation.
 
@@ -16,7 +16,7 @@ The helper requires an existing com.nexon.moe.global offline installation with a
 
 ## Windows playtest
 
-Use Launch-MOE.cmd in the existing playtest outputs folder. The launcher checks GitHub and can continue offline when checks fail. Launch-MOE.ps1 -SkipUpdateCheck skips checking. MOE-Windows-Updater-B18.zip includes the updater files and the canonical base APK; it requires the existing project/emulator/assets installation. It does not include the SAI-compatible APK.
+Use Launch-MOE.cmd in the existing playtest outputs folder. The launcher checks GitHub and can continue offline when checks fail. Launch-MOE.ps1 -SkipUpdateCheck skips checking. MOE-Windows-Updater-B20.zip includes the updater files and the canonical base APK; it requires the existing project/emulator/assets installation. It does not include the SAI-compatible APK.
 
 Update-MOE.ps1 -Mode Check checks manually. Update-MOE.ps1 -Mode Rollback restores previous game files while retaining the current save. Installed APK and save backups are kept before Windows updates. Android provides previous asset-selection restoration; it does not silently overwrite saves from a backup.
 
@@ -28,7 +28,7 @@ APK updates use Android install sessions that inherit existing resource splits. 
 
 ## Publishing
 
-New-MOERelease.ps1 signs future releases locally. Keep the private signing XML and Android keystore private; neither belongs in this repository. Current packaging reconstructs the already-signed B18 canonical APK from the verified public B15 APK and a binary delta. A second delta reproduces the SAI-compatible APK from the canonical B18 file. The release builder verifies both against the signed manifest and checks that their game content is identical. Signed manifest bytes are stored in base64 to preserve them exactly. GitHub Actions verifies reconstructed APKs before uploading and publishing release files using its temporary token. Existing successful releases remain immutable.
+New-MOERelease.ps1 signs future releases locally. Keep the private signing XML and Android keystore private; neither belongs in this repository. Current packaging reconstructs the already-signed B20 canonical APK from the verified public B18 APK and a binary delta. A second delta reproduces the SAI-compatible APK from the canonical B20 file. The release builder verifies both against the signed manifest and checks that their game content is identical. Signed manifest bytes are stored in base64 to preserve them exactly. GitHub Actions verifies reconstructed APKs before uploading and publishing release files using its temporary token. Existing successful releases remain immutable.
 
 APK changes still need an in-place Android installation. The updater avoids reinstalling the complete asset collection; asset-only releases can download just changed files.
 

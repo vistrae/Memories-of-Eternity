@@ -359,6 +359,11 @@ function Get-MOEUpdateSelection($Config, [string]$CacheRoot, [switch]$AcceptUpda
     $cached = $null
     try { $cached = Read-MOECachedRelease (Join-Path $CacheRoot 'active-release.json') $CacheRoot $Config -AllowLocalTestServer:$AllowLocalTestServer }
     catch { Write-Warning 'The cached release record is unavailable. The installed game remains usable.' }
+    # A verified older cache must not mask the newer APK bundled with this launcher.
+    # Keep the stored cache intact for rollback and other existing installations.
+    if ($cached -and [long]$cached.manifest.sequence -lt [long]$Config.installed_sequence) {
+        $cached = $null
+    }
     if ($SkipNetwork) { return $cached }
     $stamp = Join-Path $CacheRoot 'last-check.json'
     if (!$ForceCheck -and (Test-Path -LiteralPath $stamp)) {

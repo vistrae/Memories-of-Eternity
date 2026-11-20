@@ -1,0 +1,32 @@
+name: Publish verified playtest
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'release/**'
+      - 'updater/**'
+      - '.github/workflows/publish-playtest.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-playtest
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Fetch the exact source commit
+        shell: bash
+        run: |
+          git init .
+          git remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
+      - name: Prepare the delta decoder
+        run: python3 -m pip install --user bsdiff4==1.4.3
+      - name: Reproduce verify and publish the signed APK
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 release/build-release.py --publish

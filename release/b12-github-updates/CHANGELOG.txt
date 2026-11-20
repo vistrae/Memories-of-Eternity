@@ -1,0 +1,11 @@
+B12 GitHub updater
+November 19 2026
+
+Adds signed GitHub release checks to the Windows playtest launcher.
+Retains offline play when update checks or downloads fail.
+Downloads changed files only and verifies their signed sizes and SHA256 hashes.
+Preserves installed asset APKs when updating the base APK.
+Stores asset overrides separately from original game files and supports rollback.
+Backs up the installed APK and shared preferences before applying updates.
+Includes the B11 progression and awakening fixes.
+The game remains offline; the Windows launcher performs update downloads.

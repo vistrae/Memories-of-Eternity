@@ -1,0 +1,23 @@
+{
+    "schema_version":  1,
+    "application_id":  "com.nexon.moe.global",
+    "asset_format":  "unity5-global-51",
+    "channel":  "stable",
+    "save_schema_version":  1,
+    "min_updater_version":  1,
+    "sequence":  12,
+    "required_client_sequence":  12,
+    "release_id":  "b12-github-updates",
+    "changelog":  "B12 GitHub updater\nNovember 19 2026\n\nAdds signed GitHub release checks to the Windows playtest launcher.\nRetains offline play when update checks or downloads fail.\nDownloads changed files only and verifies their signed sizes and SHA256 hashes.\nPreserves installed asset APKs when updating the base APK.\nStores asset overrides separately from original game files and supports rollback.\nBacks up the installed APK and shared preferences before applying updates.\nIncludes the B11 progression and awakening fixes.\nThe game remains offline; the Windows launcher performs update downloads.\r\n",
+    "apk":  {
+                "size":  69935530,
+                "sha256":  "6fa5712781f349d1e877282f83381f785aa1fcce12d7363fd0365cd75069d296",
+                "url":  "https://github.com/vistrae/Memories-of-Eternity/releases/download/b12-github-updates/moe-base.apk"
+            },
+    "assets":  [
+
+               ],
+    "remove_assets":  [
+
+                      ]
+}

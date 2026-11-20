@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "repository": "vistrae/Memories-of-Eternity",
+  "channel": "stable",
+  "updater_version": 1,
+  "installed_sequence": 12,
+  "application_id": "com.nexon.moe.global",
+  "asset_format": "unity5-global-51",
+  "save_schema_version": 1,
+  "public_key_xml": "<RSAKeyValue><Modulus>qivjJ5OkgDAM050wsGwCRBraDmgrfDVG1URnnjrUlMhVyBhfe28pQ4zpjMcfJuL70V0wey0za9KKulxBrF/o9c7EtAVwZignltYRCLIrUCa7rGZHExJ4K1HaVzfdUX8kcDKNt84nNErn+IkKYCteSCDGR0qrih5KHAFXeh96jjDRY/VnMqsnICYjyrJA8BntXih7FxV22dTjmeNrcjBWatJfnOXmvXbaI7mX3now97LHZ6JDGr5ExETp8E0E48tAycVz5qxXgmuL2VKV9TfTjFi/uZKmC4CrmSbPP5mn/36uNUaaAcMEVZi+Hx3p8Wg63QXLeYmG7xogWuNpZzJbifBI30jYT58I64LPQCKDlweZSz9Wwdsg04GHA0S+rjG0uby1Q+Ljt/hYlRqyyEv27HSCeL4/II0DP6kQlW3oJ7AVfBEof1NPSxGKjoOK9QBO+LeeK3ArkWU+Le5qnPDjQQAQ0QHksR2hhIZ9UyvOpk/5/yoYf3LSAF8h+ynEKHSR</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>",
+  "check_timeout_seconds": 8,
+  "download_timeout_seconds": 180
+}

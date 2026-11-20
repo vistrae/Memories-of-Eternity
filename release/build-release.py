@@ -1,4 +1,4 @@
-"""Reproduce the already signed B13 APK and publish it without exposing signing keys."""
+﻿"""Reproduce the already signed B13 APK and publish it without exposing signing keys."""
 import argparse,base64,hashlib,http.cookiejar,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from html.parser import HTMLParser
 from pathlib import Path
@@ -50,7 +50,7 @@ def build(source=None):
  print("Signed B13 APK reproduced and verified.")
  helper=RELEASE/"MOE-Android-Update-Installer.apk"
  helper.write_bytes(base64.b64decode((RELEASE/"phone-installer.apk.b64").read_text(),validate=True))
- if sha(helper.read_bytes())!="b549bf3cd2cc6134ca2500313db3c96a1f7ec14b8365469dbf11c94b25ff7ff2":raise RuntimeError("Phone installer checksum mismatch")
+ if sha(helper.read_bytes())!="7300e7d3f9fc54b193a13eac3a47d6bc7652d18808d642498b528a29882fa0ea":raise RuntimeError("Phone installer checksum mismatch")
  return manifest,[target,RELEASE/"moe-update.json",RELEASE/"moe-update.json.sig",RELEASE/"CHANGELOG.txt",bundle,helper]
 def publish(manifest,files):
  token=os.environ.get("GITHUB_TOKEN")
@@ -68,6 +68,15 @@ def publish(manifest,files):
   if e.code!=404:raise
   release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B13 GitHub updater","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
+  prior=next((a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets") if a["name"]=="MOE-Android-Update-Installer.apk"),None)
+  if tag=="b13-android-updates" and prior and prior.get("digest")=="sha256:b549bf3cd2cc6134ca2500313db3c96a1f7ec14b8365469dbf11c94b25ff7ff2":
+   helper=next(p for p in files if p.name=="MOE-Android-Update-Installer.apk")
+   api("/repos/"+REPO+"/releases/assets/"+str(prior["id"]),"DELETE")
+   url=release["upload_url"].split("{",1)[0]+"?name="+helper.name
+   req=urllib.request.Request(url,data=helper.read_bytes(),headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.github+json","User-Agent":"MOE-Release-Builder","Content-Type":"application/octet-stream"},method="POST")
+   with urllib.request.urlopen(req,timeout=180) as response:meta=json.load(response)
+   if meta["size"]!=helper.stat().st_size or meta.get("digest")!="sha256:"+sha(helper.read_bytes()):raise RuntimeError("Helper repair verification failed")
+   print("Corrected and verified the B13 phone bootstrap helper; signed game files unchanged.");return
   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}
  for p in files:

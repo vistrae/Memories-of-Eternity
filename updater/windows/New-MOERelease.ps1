@@ -6,6 +6,8 @@ param(
  [string]$AssetRoot,
  [string[]]$AssetPaths=@(),
  [string[]]$RemoveAssets=@(),
+ [string[]]$VariantApkPaths=@(),
+ [string[]]$VariantSignerSha256=@(),
  [switch]$AssetsOnly,
  [int]$RequiredClientSequence=12,
  [string]$ConfigPath,
@@ -28,6 +30,20 @@ if(!$AssetsOnly){
  $file=Get-Item -LiteralPath $ApkPath
  $apk=[ordered]@{size=$file.Length;sha256=(Get-FileHash -LiteralPath $ApkPath).Hash.ToLowerInvariant();url=$prefix+'moe-base.apk'}
 }
+$variants=@()
+if($VariantApkPaths.Count -ne $VariantSignerSha256.Count){throw 'Each alternate APK requires its signing-certificate SHA256.'}
+if($VariantApkPaths.Count -gt 16 -or ($AssetsOnly -and $VariantApkPaths.Count -gt 0)){throw 'Alternate APKs require a canonical APK and at most 16 signers.'}
+$variantCerts=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+for($i=0;$i -lt $VariantApkPaths.Count;$i++){
+ $cert=$VariantSignerSha256[$i].Trim().ToLowerInvariant()
+ if($cert -notmatch '^[0-9a-f]{64}$' -or !$variantCerts.Add($cert)){throw 'Invalid or duplicate alternate APK signer.'}
+ $source=Get-Item -LiteralPath $VariantApkPaths[$i]
+ $hash=(Get-FileHash -LiteralPath $source.FullName).Hash.ToLowerInvariant()
+ if($apk -and $hash -eq $apk.sha256){throw 'Alternate APK must differ from the canonical APK.'}
+ $name=if($cert -eq 'a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc'){'moe-base-sai.apk'}else{'moe-base-'+$cert.Substring(0,12)+'.apk'}
+ Copy-Item -LiteralPath $source.FullName -Destination (Join-Path $OutputDirectory $name) -Force
+ $variants+=@([ordered]@{signing_certificate_sha256=$cert;size=$source.Length;sha256=$hash;url=$prefix+$name})
+}
 $assets=@()
 foreach($path in $AssetPaths){
  if(!(Test-MOEAssetPath $path)){throw "Unsupported asset path: $path"}
@@ -46,6 +62,7 @@ $manifest=[ordered]@{
  release_id=$ReleaseId;changelog=[IO.File]::ReadAllText((Resolve-Path -LiteralPath $ChangelogPath));
  apk=$apk;assets=@($assets);remove_assets=@($RemoveAssets)
 }
+if($variants.Count -gt 0){$manifest['apk_variants']=@($variants)}
 $json=Join-Path $OutputDirectory 'moe-update.json'
 [IO.File]::WriteAllText($json,($manifest|ConvertTo-Json -Depth 20),[Text.UTF8Encoding]::new($false))
 $key=[Security.Cryptography.RSACryptoServiceProvider]::new()

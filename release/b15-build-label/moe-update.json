@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "application_id": "com.nexon.moe.global",
+  "asset_format": "unity5-global-51",
+  "channel": "stable",
+  "save_schema_version": 1,
+  "min_updater_version": 1,
+  "sequence": 15,
+  "required_client_sequence": 15,
+  "release_id": "b15-build-label",
+  "changelog": "B15 - Title play-build label and Android update compatibility\r\n\r\nThe bottom-left title label now shows only B15, using the current build sequence automatically. The old application version, publisher logo and copyright text remain hidden. The Updates button remains on the title screen.\r\n\r\nThe Android installer now distinguishes unreadable APK metadata, package mismatch, version mismatch and signing-certificate mismatch. Installation details can be copied from the helper menu. A verified .apk-named copy is tried if a vendor Android parser cannot read the content-addressed cache filename. The native update button reattaches after Android settings recreates the game activity.\r\n\r\nSigned releases may offer an alternate APK for the standard SAI signing certificate. The new installer selects it only when that certificate matches the installed game, then retains Android's normal package/version/certificate checks and installation confirmation. This supports existing SAI-re-signed playtests without replacing their 32 asset splits or clearing their saves. Other unknown signing identities remain rejected with precise details. New installations should keep SAI Sign APKs disabled and use the supplied signatures.\r\n\r\nExisting updater support, offline play and all B14 game changes remain included. Keep the existing game installed. Use the new MOE-Android-Update-Installer.apk for older or SAI-signed copies, then the in-game title-screen Updates button for future releases. Physical remote-device compatibility is not yet verified; testing uses an Android 11 emulator. Android 5 or newer with 32-bit ARM support is required.\r\n",
+  "apk": {
+    "size": 70031380,
+    "sha256": "668934bbbba371b9b37982c5f4c109ebc4de1ec208b8c9dc7ec3a268fc5dad7c",
+    "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b15-build-label/moe-base.apk"
+  },
+  "assets": [],
+  "remove_assets": [],
+  "apk_variants": [
+    {
+      "signing_certificate_sha256": "a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc",
+      "size": 70032272,
+      "sha256": "04b94fc468317d76de95a9c238efefa839fbd4d1bb79fa6cd9193f2ecfb04517",
+      "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b15-build-label/moe-base-sai.apk"
+    }
+  ]
+}

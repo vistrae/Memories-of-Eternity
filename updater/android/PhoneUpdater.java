@@ -19,7 +19,7 @@ import java.util.*;
 
 public final class PhoneUpdater {
  static final String REPO="vistrae/Memories-of-Eternity", PKG="com.nexon.moe.global", FORMAT="unity5-global-51";
- static final int CLIENT=14;
+ static final int CLIENT=15;
  static final String MODULUS="qivjJ5OkgDAM050wsGwCRBraDmgrfDVG1URnnjrUlMhVyBhfe28pQ4zpjMcfJuL70V0wey0za9KKulxBrF/o9c7EtAVwZignltYRCLIrUCa7rGZHExJ4K1HaVzfdUX8kcDKNt84nNErn+IkKYCteSCDGR0qrih5KHAFXeh96jjDRY/VnMqsnICYjyrJA8BntXih7FxV22dTjmeNrcjBWatJfnOXmvXbaI7mX3now97LHZ6JDGr5ExETp8E0E48tAycVz5qxXgmuL2VKV9TfTjFi/uZKmC4CrmSbPP5mn/36uNUaaAcMEVZi+Hx3p8Wg63QXLeYmG7xogWuNpZzJbifBI30jYT58I64LPQCKDlweZSz9Wwdsg04GHA0S+rjG0uby1Q+Ljt/hYlRqyyEv27HSCeL4/II0DP6kQlW3oJ7AVfBEof1NPSxGKjoOK9QBO+LeeK3ArkWU+Le5qnPDjQQAQ0QHksR2hhIZ9UyvOpk/5/yoYf3LSAF8h+ynEKHSR";
  static boolean attached, busy;
  static Activity host;
@@ -29,18 +29,50 @@ public final class PhoneUpdater {
  static void ui(Runnable r){host.runOnUiThread(r);}
  static void message(final String s){ui(new Runnable(){public void run(){new AlertDialog.Builder(host).setTitle("Game updates").setMessage(s).setPositiveButton("OK",null).show();}});}
  public static void attach(final Activity a){a.runOnUiThread(new Runnable(){public void run(){
-  if(attached)return;attached=true;host=a;root=new File(a.getFilesDir(),"moe-updates");root.mkdirs();
+  if(attached&&host==a&&updateButton!=null&&updateButton.getParent()!=null)return;
+  if(updateButton!=null&&updateButton.getParent() instanceof ViewGroup)((ViewGroup)updateButton.getParent()).removeView(updateButton);
+  attached=true;host=a;root=new File(a.getFilesDir(),"moe-updates");root.mkdirs();
   Button b=new Button(a);updateButton=b;b.setText("Updates");b.setTextSize(11);b.setAlpha(.8f);
   android.widget.FrameLayout.LayoutParams p=new android.widget.FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.RIGHT);
   a.addContentView(b,p);b.setOnClickListener(new View.OnClickListener(){public void onClick(View v){menu();}});
   if(new File(root,"pending-manifest.json").exists())new Handler().postDelayed(new Runnable(){public void run(){finishPending();}},1200);
  }});}
  public static void setVisible(final Activity a,final boolean visible){a.runOnUiThread(new Runnable(){public void run(){if(updateButton!=null)updateButton.setVisibility(visible?View.VISIBLE:View.GONE);}});}
- static void menu(){new AlertDialog.Builder(host).setTitle("Offline playtest B"+CLIENT)
-  .setMessage("Play offline at any time. Checking downloads only the files needed for an update. Your save stays on this phone.")
-  .setPositiveButton("Check for updates",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){check();}})
-  .setNeutralButton("Restore assets",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){restore();}})
-  .setNegativeButton("Keep playing",null).show();}
+ static void menu(){
+  final boolean helper=!host.getPackageName().equals(PKG);
+  new AlertDialog.Builder(host).setTitle(helper?"MOE Update Installer":"Offline playtest B"+CLIENT)
+   .setMessage("Play offline at any time. Checking downloads only the files needed for an update. Your save stays on this phone.")
+   .setPositiveButton("Check for updates",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){check();}})
+   .setNeutralButton(helper?"Installation details":"Restore assets",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){if(helper)installationDetails();else restore();}})
+   .setNegativeButton("Keep playing",null).show();
+ }
+ static boolean hasCertificates(PackageInfo p){
+  if(p==null||p.signatures==null||p.signatures.length==0)return false;
+  for(android.content.pm.Signature s:p.signatures)if(s==null||s.toByteArray().length==0)return false;
+  return true;
+ }
+ static String signerFingerprints(PackageInfo p)throws Exception{
+  if(!hasCertificates(p))return "Unavailable";
+  ArrayList<String> values=new ArrayList<String>();
+  for(android.content.pm.Signature s:p.signatures)values.add(hex(MessageDigest.getInstance("SHA-256").digest(s.toByteArray())));
+  Collections.sort(values);StringBuilder result=new StringBuilder();
+  for(String value:values){if(result.length()>0)result.append("\n");result.append(value);}return result.toString();
+ }
+ static String describePackage(PackageInfo p)throws Exception{
+  if(p==null)return "Package could not be read.";
+  return "Package: "+p.packageName+"\nVersion: "+p.versionName+" (code "+p.versionCode+")\nCertificate SHA-256:\n"+signerFingerprints(p);
+ }
+ static void installationDetails(){try{
+  PackageManager pm=host.getPackageManager();PackageInfo game=null;
+  try{game=pm.getPackageInfo(PKG,PackageManager.GET_SIGNATURES);}catch(PackageManager.NameNotFoundException absent){}
+  final String details="MOE Update Installer B"+CLIENT+"\nAndroid: "+Build.VERSION.RELEASE+" (API "+Build.VERSION.SDK_INT+")\n\nInstalled game:\n"+
+   (game==null?PKG+" is not installed.":describePackage(game))+"\n\nInstaller:\n"+describePackage(pm.getPackageInfo(host.getPackageName(),PackageManager.GET_SIGNATURES));
+  new AlertDialog.Builder(host).setTitle("Installation details").setMessage(details)
+   .setPositiveButton("Copy details",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){
+    ClipboardManager clipboard=(ClipboardManager)host.getSystemService(Context.CLIPBOARD_SERVICE);
+    clipboard.setPrimaryClip(ClipData.newPlainText("MOE installation details",details));Toast.makeText(host,"Details copied",Toast.LENGTH_SHORT).show();
+   }}).setNegativeButton("Close",null).show();
+ }catch(Exception e){message("Could not read installation details: "+e.getMessage());}}
  interface Work{void run() throws Exception;}
  static synchronized void worker(final Work task){if(busy)return;busy=true;
   progress=new ProgressDialog(host);progress.setMessage("Checking update files...");progress.setCancelable(false);progress.show();
@@ -64,13 +96,43 @@ public final class PhoneUpdater {
  static void copy(File from,File to)throws Exception{to.getParentFile().mkdirs();FileInputStream in=new FileInputStream(from);try{FileOutputStream out=new FileOutputStream(to);try{byte[] b=new byte[262144];int n;while((n=in.read(b))!=-1)out.write(b,0,n);out.getFD().sync();}finally{out.close();}}finally{in.close();}}
  static void path(String p)throws Exception{if(p.length()==0||p.length()>240||!p.matches("[A-Za-z0-9_./-]+"))throw new IOException("Invalid asset path");for(String s:p.split("/",-1))if(s.equals("")||s.equals(".")||s.equals(".."))throw new IOException("Invalid asset path");String l=p.toLowerCase(java.util.Locale.US);if(l.endsWith(".dll")||l.endsWith(".dex")||l.endsWith(".so")||l.endsWith(".apk")||l.endsWith(".exe")||l.endsWith(".mp4"))throw new IOException("Unsupported asset type");}
  static void spec(JSONObject s)throws Exception{String h=s.getString("sha256");long n=s.getLong("size");if(!h.matches("[0-9a-f]{64}")||n<1||n>2147483647L)throw new IOException("Invalid file description");URL u=new URL(s.getString("url"));if(!u.getProtocol().equals("https")||!u.getHost().equals("github.com")||!u.getPath().startsWith("/"+REPO+"/releases/download/"))throw new IOException("Wrong file repository");}
+ static void verifyApkVariants(JSONObject m)throws Exception{
+  if(!m.has("apk_variants")||m.isNull("apk_variants"))return;
+  JSONArray variants=m.getJSONArray("apk_variants");
+  if(variants.length()>16)throw new IOException("Too many APK signing variants");
+  if(variants.length()>0&&(!m.has("apk")||m.isNull("apk")))throw new IOException("APK signing variants require a default APK");
+  Set<String> certificates=new HashSet<String>(),hashes=new HashSet<String>(),urls=new HashSet<String>();
+  for(int i=0;i<variants.length();i++){
+   JSONObject variant=variants.getJSONObject(i);String certificate=variant.getString("signing_certificate_sha256");
+   if(!certificate.matches("[0-9a-f]{64}"))throw new IOException("Invalid APK signing certificate fingerprint");
+   spec(variant);
+   if(!certificates.add(certificate)||!hashes.add(variant.getString("sha256"))||!urls.add(variant.getString("url")))throw new IOException("Duplicate APK signing variant");
+  }
+ }
+ static JSONObject chooseApkForInstalled(JSONObject m,PackageInfo installed)throws Exception{
+  if(!m.has("apk")||m.isNull("apk"))return null;
+  if(!hasCertificates(installed))throw new IOException("Android did not return the installed game's signing certificate. No APK was selected.\n\nInstalled:\n"+describePackage(installed));
+  if(installed.signatures.length!=1)throw new IOException("This updater requires one installed signing certificate. No APK was selected.\n\nInstalled:\n"+describePackage(installed));
+  String certificate=signerFingerprints(installed);
+  if(m.has("apk_variants")&&!m.isNull("apk_variants")){
+   JSONArray variants=m.getJSONArray("apk_variants");
+   for(int i=0;i<variants.length();i++){JSONObject variant=variants.getJSONObject(i);if(certificate.equals(variant.getString("signing_certificate_sha256")))return variant;}
+  }
+  return m.getJSONObject("apk");
+ }
+ static JSONObject selectedApk(JSONObject m)throws Exception{
+  if(!m.has("apk")||m.isNull("apk"))return null;
+  PackageInfo installed;
+  try{installed=host.getPackageManager().getPackageInfo(PKG,PackageManager.GET_SIGNATURES);}catch(PackageManager.NameNotFoundException absent){throw new IOException("The game "+PKG+" is not installed. Keep your existing game if it uses another package ID.");}
+  return chooseApkForInstalled(m,installed);
+ }
  static JSONObject verify(byte[] bytes,byte[] sig)throws Exception{
   PublicKey key=KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(new BigInteger(1,android.util.Base64.decode(MODULUS,0)),BigInteger.valueOf(65537)));
   java.security.Signature v=java.security.Signature.getInstance("SHA256withRSA");v.initVerify(key);v.update(bytes);if(!v.verify(android.util.Base64.decode(sig,0)))throw new IOException("Update signature is invalid");
   JSONObject m=new JSONObject(new String(bytes,"UTF-8").replaceFirst("^\\uFEFF",""));
   if(m.getInt("schema_version")!=1||!m.getString("application_id").equals(PKG)||!m.getString("asset_format").equals(FORMAT)||!m.getString("channel").equals("stable")||m.getInt("save_schema_version")!=1||m.getInt("min_updater_version")>1||m.getLong("sequence")<1||m.getLong("required_client_sequence")>m.getLong("sequence"))throw new IOException("Incompatible update");
   if(!m.getString("release_id").matches("[A-Za-z0-9_.-]{1,100}"))throw new IOException("Invalid release ID");
-  if(m.has("apk")&&!m.isNull("apk"))spec(m.getJSONObject("apk"));
+  if(m.has("apk")&&!m.isNull("apk"))spec(m.getJSONObject("apk"));verifyApkVariants(m);
   JSONArray a=m.getJSONArray("assets"),removed=m.getJSONArray("remove_assets");if(a.length()+removed.length()>900)throw new IOException("Too many assets");Set<String> seen=new HashSet<String>();
   for(int i=0;i<a.length();i++){JSONObject x=a.getJSONObject(i);String p=x.getString("path");path(p);if(!seen.add(p))throw new IOException("Duplicate asset");spec(x);}
   for(int i=0;i<removed.length();i++){String p=removed.getString(i);path(p);if(!seen.add(p))throw new IOException("Duplicate removal");}
@@ -92,7 +154,7 @@ public final class PhoneUpdater {
  }});}
  static void backup()throws Exception{File dest=new File(root,"backups/"+System.currentTimeMillis());dest.mkdirs();File prefs=new File(host.getApplicationInfo().dataDir,"shared_prefs");File[] files=prefs.listFiles();if(files!=null)for(File f:files)if(f.isFile())copy(f,new File(dest,"shared_prefs/"+f.getName()));File index=new File(root,"active.json");if(index.exists()){copy(index,new File(dest,"active.json"));atomic(new File(root,"previous-active.json"),read(index));}else atomic(new File(root,"previous-active.json"),"null".getBytes("UTF-8"));}
  static void stage(final JSONObject m,final byte[] bytes,final byte[] sig){worker(new Work(){public void run()throws Exception{
-  File apk=null;if(m.has("apk")&&!m.isNull("apk"))apk=download(m.getJSONObject("apk"));JSONArray assets=m.getJSONArray("assets");for(int i=0;i<assets.length();i++)download(assets.getJSONObject(i));
+  JSONObject apkSpec=selectedApk(m);File apk=apkSpec==null?null:download(apkSpec);JSONArray assets=m.getJSONArray("assets");for(int i=0;i<assets.length();i++)download(assets.getJSONObject(i));
   if(m.getLong("required_client_sequence")>CLIENT&&apk==null)throw new IOException("A newer app is required");backup();
   if(apk!=null){validateApk(apk);atomic(new File(root,"pending-manifest.json"),bytes);atomic(new File(root,"pending-manifest.sig"),sig);final File ready=apk;ui(new Runnable(){public void run(){install(ready);}});}
   else{activate(m);message("Asset update ready. Close and reopen the game to use it. Your save is retained.");}
@@ -105,8 +167,30 @@ public final class PhoneUpdater {
   JSONArray removed=m.getJSONArray("remove_assets");for(int i=0;i<removed.length();i++){files.remove(removed.getString(i));hashes.remove(removed.getString(i));}
   index.put("schema_version",1);index.put("asset_format",FORMAT);index.put("sequence",m.getLong("sequence"));index.put("release_id",m.getString("release_id"));index.put("files",files);index.put("hashes",hashes);atomic(active,index.toString().getBytes("UTF-8"));
  }
- public static void finishPending(){worker(new Work(){public void run()throws Exception{File f=new File(root,"pending-manifest.json"),s=new File(root,"pending-manifest.sig");if(!f.exists()||!s.exists())return;JSONObject m=verify(read(f),read(s));if(m.getLong("required_client_sequence")>CLIENT)return;if(m.has("apk")&&!m.isNull("apk")&&!sha(new File(host.getApplicationInfo().sourceDir)).equals(m.getJSONObject("apk").getString("sha256")))return;activate(m);f.delete();s.delete();message("Update completed. Reopen the game to load updated assets.");}});}
- static void validateApk(File f)throws Exception{PackageManager pm=host.getPackageManager();PackageInfo next=pm.getPackageArchiveInfo(f.getPath(),PackageManager.GET_SIGNATURES),current=pm.getPackageInfo(PKG,PackageManager.GET_SIGNATURES);if(next==null||!PKG.equals(next.packageName)||next.versionCode!=current.versionCode||!Arrays.equals(next.signatures,current.signatures))throw new IOException("APK identity or signing certificate does not match this installation");}
+ public static void finishPending(){worker(new Work(){public void run()throws Exception{File f=new File(root,"pending-manifest.json"),s=new File(root,"pending-manifest.sig");if(!f.exists()||!s.exists())return;JSONObject m=verify(read(f),read(s));if(m.getLong("required_client_sequence")>CLIENT)return;JSONObject apkSpec=selectedApk(m);if(apkSpec!=null&&!sha(new File(host.getApplicationInfo().sourceDir)).equals(apkSpec.getString("sha256")))return;activate(m);f.delete();s.delete();message("Update completed. Reopen the game to load updated assets.");}});}
+ static void checkApkIdentity(PackageInfo next,PackageInfo current)throws Exception{
+  String details="\n\nInstalled:\n"+describePackage(current)+"\n\nDownloaded:\n"+describePackage(next);
+  if(current==null)throw new IOException("The installed game could not be inspected."+details);
+  if(next==null)throw new IOException("Android could not read the downloaded APK, including an .apk filename retry."+details);
+  if(!PKG.equals(next.packageName))throw new IOException("The downloaded APK has a different package ID."+details);
+  if(next.versionCode!=current.versionCode)throw new IOException("The installed and downloaded version codes differ. This update requires the same game version code."+details);
+  if(!hasCertificates(current))throw new IOException("Android did not return the installed game's signing certificate. Installation was stopped."+details);
+  if(!hasCertificates(next))throw new IOException("Android did not return the downloaded APK's signing certificate. Installation was stopped."+details);
+  if(current.signatures.length!=1||next.signatures.length!=1)throw new IOException("This updater requires one installed and one downloaded signing certificate. Installation was stopped."+details);
+  if(!Arrays.equals(next.signatures,current.signatures))throw new IOException("The installed game and downloaded APK use different signing certificates. Keep the installed game; do not uninstall it before preserving your save."+details);
+ }
+ static void validateApk(File f)throws Exception{
+  PackageManager pm=host.getPackageManager();PackageInfo current;
+  try{current=pm.getPackageInfo(PKG,PackageManager.GET_SIGNATURES);}catch(PackageManager.NameNotFoundException absent){throw new IOException("The game "+PKG+" is not installed. Keep your existing game if it uses another package ID.");}
+  PackageInfo next=pm.getPackageArchiveInfo(f.getPath(),PackageManager.GET_SIGNATURES);
+  if(next==null){
+   File named=new File(host.getCacheDir(),"moe-update-base.apk");
+   try{copy(f,named);if(named.length()!=f.length()||!sha(named).equals(sha(f)))throw new IOException("Could not prepare a verified APK for Android to inspect.");
+    next=pm.getPackageArchiveInfo(named.getPath(),PackageManager.GET_SIGNATURES);
+   }finally{named.delete();}
+  }
+  checkApkIdentity(next,current);
+ }
  static void install(File apk){try{
   if(Build.VERSION.SDK_INT>=26&&!host.getPackageManager().canRequestPackageInstalls()){new AlertDialog.Builder(host).setTitle("Allow game updates").setMessage("Allow this game to install updates, then return and check again. Android will ask before installing. Your save is retained.").setPositiveButton("Open settings",new DialogInterface.OnClickListener(){public void onClick(DialogInterface d,int w){host.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,Uri.parse("package:"+host.getPackageName())));}}).setNegativeButton("Later",null).show();return;}
   validateApk(apk);PackageInstaller pi=host.getPackageManager().getPackageInstaller();PackageInstaller.SessionParams p=new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_INHERIT_EXISTING);p.setAppPackageName(PKG);p.setSize(apk.length());int id=pi.createSession(p);PackageInstaller.Session session=pi.openSession(id);

@@ -1,0 +1,9 @@
+B15 - Title play-build label and Android update compatibility
+
+The bottom-left title label now shows only B15, using the current build sequence automatically. The old application version, publisher logo and copyright text remain hidden. The Updates button remains on the title screen.
+
+The Android installer now distinguishes unreadable APK metadata, package mismatch, version mismatch and signing-certificate mismatch. Installation details can be copied from the helper menu. A verified .apk-named copy is tried if a vendor Android parser cannot read the content-addressed cache filename. The native update button reattaches after Android settings recreates the game activity.
+
+Signed releases may offer an alternate APK for the standard SAI signing certificate. The new installer selects it only when that certificate matches the installed game, then retains Android's normal package/version/certificate checks and installation confirmation. This supports existing SAI-re-signed playtests without replacing their 32 asset splits or clearing their saves. Other unknown signing identities remain rejected with precise details. New installations should keep SAI Sign APKs disabled and use the supplied signatures.
+
+Existing updater support, offline play and all B14 game changes remain included. Keep the existing game installed. Use the new MOE-Android-Update-Installer.apk for older or SAI-signed copies, then the in-game title-screen Updates button for future releases. Physical remote-device compatibility is not yet verified; testing uses an Android 11 emulator. Android 5 or newer with 32-bit ARM support is required.

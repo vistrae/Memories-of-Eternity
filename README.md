@@ -1,6 +1,14 @@
 # Memories of Eternity Update Server
 
-## Current release: B24
+## Current release: B26
+
+Newly acquired Pixies with an archived Prototype family receive their own literal C-grade Preferred Prototype suit: 25 original Pixie-to-suit associations, each with original team cost 2. Fresh Leahs and Puris retain level 5; later recruits retain level 1. Existing saved equipment and levels stay unchanged. Miku has no archived C-grade Prototype Harmony and keeps her existing B-grade Common Desert Service Support (suit 10110); original recruitment conditions and Heart costs are retained.
+
+This update also includes B25 inventory expansion. Starting capacity remains 100; suits and parts can each expand to 5,000 slots with the original +10 increments, costing 100 Gems per suit expansion or 200 Gems per parts expansion. Capacity and payment persist together per selected save, with no charge on rejection or failed saving. No component purchase is invented; its original tab remains disabled, and Temple storage stays separate.
+
+All 25 Prototype models/icons already exist in compatible installed resource splits. No asset replacement is needed. B26 passed 774 runtime assertions and 571 package checks, plus real production/recovery/cleanup checks. Offline play, all three save profiles and earlier B24 features are retained.
+
+## Retained B24 and earlier features
 
 Hangar locks for suits, parts and components restore after offline inventory loading and persist immediately after lock or unlock, including a cold restart before leaving Hangar. Native preference keys/schema, selected-save isolation, ownership, resources and unrelated settings are retained.
 
@@ -28,7 +36,7 @@ Update checks are optional. Offline play remains available. The installer may ne
 
 ## Windows playtest
 
-Download **MOE-Windows-Updater-B24.zip** and extract it into the Windows launcher folder. Keep the installed game, local saves and compatible resource splits. Start your dedicated **MOE-Split-Test** emulator yourself, then explicitly supply its serial and the ADB path; for example, `Launch-MOE.cmd -Serial emulator-5560 -AdbPath "C:\Android\platform-tools\adb.exe"`. Use the actual serial of your running test emulator; the example is not selected automatically.
+Download **MOE-Windows-Updater-B26.zip** and extract it into the Windows launcher folder. Keep the installed game, local saves and compatible resource splits. Start your dedicated **MOE-Split-Test** emulator yourself, then explicitly supply its serial and the ADB path; for example, `Launch-MOE.cmd -Serial emulator-5560 -AdbPath "C:\Android\platform-tools\adb.exe"`. Use the actual serial of your running test emulator; the example is not selected automatically.
 
 To check or download an update without accessing a device, run `powershell -File .\Update-MOE.ps1 -Mode Check` (add `-AcceptUpdate` to accept a download). To apply it, use `powershell -File .\Update-MOE.ps1 -Mode Update -Serial <your-test-serial> -AdbPath <your-adb-path>`; rollback uses `-Mode Rollback` with the same explicit target. Updates and rollback require root access already active. Default caches/backups are separated by serial, and rollback rejects a backup for another target.
 
@@ -42,4 +50,4 @@ The canonical game certificate is `2c616f46dd007026571ba37ca5dfd291dd2ad36cd9aee
 
 ## Publishing
 
-`release/build-release.py` reconstructs the already-signed B24 canonical APK from the pinned public B21 canonical APK using verified delta chunks, reconstructs the matching SAI variant, verifies the signed manifest, and builds the deterministic Windows ZIP. The repository stores bounded text transfer chunks and public updater sources; it does not contain private signing keys, local saves or the original asset archive. Existing release tags and files are retained.
+`release/build-release.py` reconstructs the already-signed B26 canonical APK from the pinned public B21 canonical APK using verified delta chunks, reconstructs the matching SAI variant, verifies the signed manifest, and builds the deterministic Windows ZIP. The repository stores bounded text transfer chunks and public updater sources; it does not contain private signing keys, local saves or the original asset archive. Existing release tags and files are retained.

@@ -1,8 +1,8 @@
-"""Reproduce signed B24 APKs and publish them without exposing private signing keys."""
+"""Reproduce signed B26 APKs and publish them without exposing private signing keys."""
 import argparse,base64,hashlib,io,json,os,sys,urllib.request,urllib.parse,urllib.error,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-RELEASE=ROOT/"release"/"b24-hangar-locks"
+RELEASE=ROOT/"release"/"b26-prototype-starters"
 REPO="vistrae/Memories-of-Eternity"
 SOURCE_SHA="26d06a2c0825562e55548102445690c31684299bc1ddd347cb161c897e0b23ea"
 HELPER_SHA="eeefb24140b40cb62191b5e230ae15867cb49d886ac77bdb58f6a492c3a3ceca"
@@ -61,22 +61,22 @@ def build(source=None):
  verify_manifest(manifest_bytes)
  (RELEASE/"moe-update.json").write_bytes(manifest_bytes)
  manifest=json.loads(manifest_bytes.decode("utf-8-sig"))
- if manifest["release_id"]!="b24-hangar-locks" or manifest["sequence"]!=24 or manifest["required_client_sequence"]!=24:
-  raise RuntimeError("Wrong B24 release manifest.")
+ if manifest["release_id"]!="b26-prototype-starters" or manifest["sequence"]!=26 or manifest["required_client_sequence"]!=26:
+  raise RuntimeError("Wrong B26 release manifest.")
  original=Path(source).read_bytes() if source else download_source()
  if sha(original)!=SOURCE_SHA:raise RuntimeError("Wrong bootstrap APK")
  apk=checked(bsdiff4.patch(original,decode_patch("moe-base.bsdiff.b64")),manifest["apk"],"Canonical APK")
  target=RELEASE/"moe-base.apk";target.write_bytes(apk)
  variants=manifest.get("apk_variants",[])
  if len(variants)!=1 or variants[0]["signing_certificate_sha256"]!=SAI_CERT:
-  raise RuntimeError("Expected exactly the B24 standard-SAI signing variant.")
+  raise RuntimeError("Expected exactly the B26 standard-SAI signing variant.")
  variant_spec=variants[0]
  if Path(urllib.parse.urlparse(variant_spec["url"]).path).name!="moe-base-sai.apk":
   raise RuntimeError("Unexpected SAI variant asset name.")
  sai=checked(bsdiff4.patch(apk,decode_patch("moe-base-sai.bsdiff.b64")),variant_spec,"SAI-compatible APK")
  same_game_content(apk,sai)
  sai_target=RELEASE/"moe-base-sai.apk";sai_target.write_bytes(sai)
- bundle=RELEASE/"MOE-Windows-Updater-B24.zip"
+ bundle=RELEASE/"MOE-Windows-Updater-B26.zip"
  with zipfile.ZipFile(bundle,"w",zipfile.ZIP_DEFLATED,compresslevel=1) as z:
   for path in sorted((ROOT/"updater/windows").glob("*")):
    if path.is_file():write_zip_entry(z,path.name,path.read_bytes())
@@ -84,9 +84,9 @@ def build(source=None):
   write_zip_entry(z,"GitHub-Updater-Readme.txt",(ROOT/"README.md").read_bytes())
  helper=RELEASE/"MOE-Android-Update-Installer.apk"
  helper_bytes=decode_patch("phone-installer.apk.b64")
- if sha(helper_bytes)!=HELPER_SHA:raise RuntimeError("B24 phone installer checksum mismatch")
+ if sha(helper_bytes)!=HELPER_SHA:raise RuntimeError("B26 phone installer checksum mismatch")
  helper.write_bytes(helper_bytes)
- print("Signed B24 canonical and SAI-compatible APKs reproduced and verified; game content is identical.")
+ print("Signed B26 canonical and SAI-compatible APKs reproduced and verified; game content is identical.")
  return manifest,[target,sai_target,RELEASE/"moe-update.json",RELEASE/"moe-update.json.sig",RELEASE/"CHANGELOG.txt",bundle,helper]
 
 def publish(manifest,files):
@@ -103,7 +103,7 @@ def publish(manifest,files):
  try:release=api("/repos/"+REPO+"/releases/tags/"+tag)
  except urllib.error.HTTPError as e:
   if e.code!=404:raise
-  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B24 Memories of Eternity offline playtest","body":manifest["changelog"],"draft":True,"prerelease":False})
+  release=api("/repos/"+REPO+"/releases","POST",{"tag_name":tag,"target_commitish":os.environ.get("GITHUB_SHA","main"),"name":"B26 Memories of Eternity offline playtest","body":manifest["changelog"],"draft":True,"prerelease":False})
  if not release["draft"]:
   print("Release already published; immutable release left unchanged: "+release["html_url"]);return
  existing={a["name"]:a for a in api("/repos/"+REPO+"/releases/"+str(release["id"])+"/assets")}

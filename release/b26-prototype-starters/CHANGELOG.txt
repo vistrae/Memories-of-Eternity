@@ -1,0 +1,35 @@
+B26 - Prototype starters and persistent inventory expansion
+
+B26 includes the B25 inventory update, which was previously available as a local playtest, and the new Prototype starter-suit policy. Earlier B24 features remain included.
+
+NEW PIXIE STARTER SUITS
+- Newly acquired Pixies with an original Prototype family now receive their own exact C-grade Preferred Prototype suit. The 25 Pixie-to-suit associations come from the original Codex/story/table data; each suit retains its original cost of 2.
+- Fresh-account Leahs and Puris receive Prototype Kai and Prototype Athlon at the existing Pixie/suit level 5. Later recruits receive their mapped Prototype at the existing level 1.
+- Miku has no archived C-grade Prototype Harmony. She keeps her original B-grade Common Desert Service Support (suit 10110) at level 1; no Harmony or replacement family is invented.
+- Existing saved suits, equipment assignments, levels and experience are retained. Original recruitment conditions and Heart prices are unchanged. The new starter policy runs only during real initial roster creation or later acquisition.
+- All 25 Prototype models and their icons are present in the existing archived resource splits. This update requires no replacement asset download.
+
+B25 INVENTORY EXPANSION INCLUDED
+- Suit and parts capacity purchases now work through the normal native Shop/Slot Add response and persist separately for each selected save.
+- Starting capacity remains 100. Both suit and parts inventories can expand to 5,000 slots using the original +10-slot increments.
+- Each suit expansion costs 100 Gems; each parts expansion costs 200 Gems. These are twice the original archived 50/100-Gem prices.
+- Exact capacity and Gem changes commit together. Insufficient Gems, a full inventory or an unsuccessful save do not consume Gems or partially change capacity.
+- The existing component tab remains disabled and no new component purchase is added. Temple storage remains separate.
+
+RETAINED B24 FEATURES
+- Hangar protection for suits, parts and components persists immediately after lock/unlock and restores after full offline inventory loading, including a cold restart. Original native preference keys and selected-save isolation are retained.
+- Dormitory showroom aliases remain consolidated while preserving all 283 raw decoration IDs, original prices, separate price variants, earned set rewards, saved placements, scores and effects.
+- Existing weekly beginner Draw limits, timed paid-banner rotation, permanent Friendship draws, AP/BP settings, zero manual content costs, Daily category tabs, hourly Crossover missions, protected Admin tools, offline helpers and three save profiles remain included.
+
+OFFLINE PLAY AND UPDATING
+- Online access is needed only when checking or downloading an update. The installed game remains playable offline.
+- Keep the existing game and compatible resource splits installed; do not uninstall or clear application data. Package identity com.nexon.moe.global and save schema 1 are retained.
+- The signed release supplies the canonical game certificate and the standard SAI-compatible certificate variant. The updater selects the matching variant; a different private signing key is rejected rather than bypassing Android checks.
+- On Android, use Update on the title screen or the unchanged MOE Android Update Installer version 1.4 (code 5) for an older supported installation. Approve Android's installation prompt. Existing compatible resource splits and local saves are retained.
+- The Windows bundle requires an already running, explicitly selected MOE-Split-Test emulator. No emulator or ADB-daemon restart, network change or automatic device selection occurs. The protected emulator-5556 and MOE AVD are rejected. Check/download can run without any device.
+- This is a base-APK update for an existing asset installation, not a fresh full-asset package or a standalone Unity Windows conversion.
+
+VALIDATION
+- 774 runtime assertions passed across 13 fresh reports: 646 inherited checks and 128 Prototype starter checks.
+- 571 final production package checks passed. Real production UI validation passed 21 assertions, including original saved gear, freshly generated Kai/Athlon models and genuine Emily/Miku recruitments with original Heart deductions.
+- Recruited assignments persisted after reopening; existing unrelated resources/progression remained unchanged. Full test-fixture recovery passed 15 checks and owned emulator/server cleanup passed 5.

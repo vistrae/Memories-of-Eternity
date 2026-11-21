@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "application_id": "com.nexon.moe.global",
+  "asset_format": "unity5-global-51",
+  "channel": "stable",
+  "save_schema_version": 1,
+  "min_updater_version": 1,
+  "sequence": 21,
+  "required_client_sequence": 21,
+  "release_id": "b21-dormitory-codex",
+  "changelog": "B21 - Dormitory, shop requirements, Pension rewards and Codex progress\r\n\r\nAll 283 archived room-decoration IDs are available offline. Dormitory purchases, Buy and Save, saved layouts, completed-set rewards and daily Heart claims now work locally. Original Gem prices, six-piece set prerequisites and decoration scores are retained. Expired event dates and original Pixie restrictions no longer hide furniture variants; each owned Pixie's room keeps its own purchased collection and six-slot layout within the selected save. The complete catalog is not granted free. Valid old placements are preserved.\r\n\r\nAll 70 HOT cards remain visible in their existing order at 20 AP each. Original progression cutoffs and numeric purchase limits are checked before payment. Under the chosen offline policy, a Chapter N package requires clearing Chapter N itself. Unmet requirements show a grey price and explain the lock. Per-save purchase receipts now retain limits across restarts; older unrecorded purchases are not guessed. The seven Gem bundles are unchanged.\r\n\r\nThe six [Advanced] Quest for Galactic Pension missions (22, 23, 24, 28, 29 and 30) grant a flat 50,000 Credits per clear, including eligible Auto Clear. This is the requested custom offline payout; their original fixed Clear lists were empty and the retired server's enemy-credit amounts were not recovered. Original repeat limits and normal Auto Clear BP rules remain in place.\r\n\r\nThe Codex records exact acquired suit models separately for each local save. Evolving or consuming an obtained model retains its acquisition history. A family Episode requires an acquired playable model at every available grade in that exact family; a high-grade model does not unlock missing lower grades. Grade alternatives count within their grade. COMMON and Pixie-specific FAVOR models are included. Locked Episode controls are visibly dark and noninteractive, and grade headers/icons load correctly. Older consumed models that were never recorded cannot be reconstructed automatically.\r\n\r\nExisting offline saves, three local profiles, Captain names, selected-save typed RESET, the stable 26-Pixie helper roster, the 30-minute helper timer, regeneration and zero AP/BP manual content costs are retained. New room ownership, HOT receipts and Codex history are stored within the selected profile.\r\n\r\nKeep the existing game installed. Use Update on the title screen, or the small MOE-Android-Update-Installer.apk for an older supported installation, and approve Android's installation prompt. The helper is version 1.4 (code 5). Canonical and standard SAI signing identities are supported; the installer selects only a matching signed variant. Existing compatible resource splits and local saves are retained. Do not uninstall the game or clear its data. Checking is optional and offline play remains available. This release updates an existing asset installation; it does not include a fresh full asset set.\r\n\r\nValidation: 251 in-engine checks cover dormitory transactions and persistence, HOT eligibility, all six 50,000-Credit normal/Auto Clear receipts and duplicate-end protection, and Codex acquisition/episode rules. The final production package passed 151 checks and 12 actual Codex interface checks. Earlier production dormitory checks verified a real wallpaper purchase/save and cold-restart retention; the final package preserves that reviewed dormitory behavior. Android 11 emulator checks do not establish compatibility with every physical phone.\r\n",
+  "apk": {
+    "size": 70089752,
+    "sha256": "26d06a2c0825562e55548102445690c31684299bc1ddd347cb161c897e0b23ea",
+    "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b21-dormitory-codex/moe-base.apk"
+  },
+  "assets": [],
+  "remove_assets": [],
+  "apk_variants": [
+    {
+      "signing_certificate_sha256": "a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc",
+      "size": 70090638,
+      "sha256": "775c11da90b5549608e1d736fbf798afc52177a8b1698253d4e50bdf76a847b4",
+      "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b21-dormitory-codex/moe-base-sai.apk"
+    }
+  ]
+}

@@ -1,18 +1,22 @@
-﻿param(
+param(
     [ValidateSet('Check','Update','Rollback')][string]$Mode='Check',
     [string]$ConfigPath,
     [string]$CacheRoot,
     [string]$AdbPath,
-    [string]$Serial='emulator-5556',
+    [string]$Serial,
     [switch]$AcceptUpdate,
     [switch]$SkipNetwork
 )
 $ErrorActionPreference='Stop'
 if(!$ConfigPath){$ConfigPath=Join-Path $PSScriptRoot 'GitHub-Update-Config.json'}
-if(!$CacheRoot){$CacheRoot=Join-Path (Split-Path $PSScriptRoot -Parent) 'work/github-update-cache'}
 if(!$AdbPath){$AdbPath=Join-Path (Split-Path $PSScriptRoot -Parent) 'work/android/platform-tools/adb.exe'}
 . (Join-Path $PSScriptRoot 'MOE-Update-Core.ps1')
 $config=Read-MOEJson $ConfigPath
+if($Mode -ne 'Check'){Assert-MOEDeviceSelection $AdbPath $Serial}
+if(!$CacheRoot){
+    if($Mode -eq 'Check'){$CacheRoot=Join-Path (Split-Path $PSScriptRoot -Parent) 'work/github-update-cache/check'}
+    else{$CacheRoot=Join-Path (Split-Path $PSScriptRoot -Parent) ('work/github-update-cache/devices/'+$Serial)}
+}
 if($Mode -eq 'Rollback'){Undo-MOERelease $CacheRoot $config $AdbPath $Serial;exit}
 $selection=Get-MOEUpdateSelection $config $CacheRoot -AcceptUpdate:$AcceptUpdate -SkipNetwork:$SkipNetwork -ForceCheck
 if($Mode -eq 'Update'){

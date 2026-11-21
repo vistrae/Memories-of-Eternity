@@ -1,4 +1,4 @@
-﻿Set-StrictMode -Version 2
+Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
 $script:MOEPackage = 'com.nexon.moe.global'
 $script:MOEFormat = 'unity5-global-51'
@@ -183,29 +183,39 @@ function Read-MOECachedRelease([string]$StatePath, [string]$CacheRoot, $Config, 
     if($actual -ne $state.manifest_sha256 -or $state.release_folder -ne ($manifest.sequence.ToString()+'-'+$actual)){throw 'Cached release identity mismatch.'}
     return [pscustomobject]@{ directory=$folder; manifest=$manifest; hash=$actual }
 }
+function Assert-MOEDeviceSelection([string]$Adb, [string]$Serial) {
+    if ([string]::IsNullOrWhiteSpace($Serial) -or $Serial -notmatch '^emulator-[0-9]+$') {
+        throw 'Supply -Serial for an already running MOE-Split-Test emulator. No device is selected automatically.'
+    }
+    if ($Serial -eq 'emulator-5556') { throw 'The protected emulator-5556 cannot be used by this updater.' }
+    if (!(Test-Path -LiteralPath $Adb -PathType Leaf)) { throw 'ADB was not found. Supply its executable using -AdbPath.' }
+    $state = @(& $Adb -s $Serial get-state 2>&1)
+    if ($LASTEXITCODE -or $state.Count -ne 1 -or "$($state[0])".Trim() -ne 'device') {
+        throw 'The explicitly selected emulator must already be connected, online and authorized.'
+    }
+    $name = @(& $Adb -s $Serial emu avd name 2>&1)
+    if ($LASTEXITCODE) { throw 'The selected emulator identity could not be verified.' }
+    $identity = @($name | ForEach-Object { "$_".Trim() } | Where-Object { $_ -and $_ -ne 'OK' })
+    if ($identity.Count -ne 1 -or $identity[0] -eq 'MOE' -or $identity[0] -ne 'MOE-Split-Test') {
+        throw 'Only the explicitly selected MOE-Split-Test AVD is supported. The MOE AVD is protected.'
+    }
+}
 function Invoke-MOEAdb([string]$Adb, [string]$Serial, [string[]]$Arguments) {
+    # Recheck the exact target before every command, including cleanup and rollback.
+    Assert-MOEDeviceSelection $Adb $Serial
+    if (!$Arguments -or $Arguments[0] -in @('root','unroot','reboot','reboot-bootloader','start-server','kill-server','wait-for-device','emu') -or
+        ($Arguments[0] -eq 'shell' -and $Arguments.Count -gt 1 -and $Arguments[1] -in @('reboot','setprop','svc','stop','start'))) {
+        throw 'Emulator lifecycle, daemon restart and network changes are not supported.'
+    }
     $ErrorActionPreference = 'Continue'
     $result = @(& $Adb -s $Serial @Arguments 2>&1)
     if ($LASTEXITCODE) { throw ('Android command failed: ' + ($result -join ' ')) }
     return ($result -join [Environment]::NewLine)
 }
 function Assert-MOEEmulatorRoot([string]$Adb, [string]$Serial) {
-    # Only the dedicated Windows test AVDs support this host-side updater.
-    if ($Serial -notmatch '^emulator-[0-9]+$') { throw 'Updates are restricted to the dedicated MOE emulator.' }
-    $name = Invoke-MOEAdb $Adb $Serial @('emu','avd','name')
-    if ($name -notmatch '(?m)^MOE(?:-Split-Test)?\s*$') { throw 'Updates are restricted to the dedicated MOE emulator.' }
+    Assert-MOEDeviceSelection $Adb $Serial
     $uid = (Invoke-MOEAdb $Adb $Serial @('shell','id','-u')).Trim()
-    if ($uid -eq '0') { return }
-    [void](Invoke-MOEAdb $Adb $Serial @('root'))
-    # adbd restarts after root; wait for it to reconnect and prove private-save access.
-    for ($attempt = 0; $attempt -lt 30; $attempt++) {
-        Start-Sleep -Seconds 1
-        try {
-            $uid = (Invoke-MOEAdb $Adb $Serial @('shell','id','-u')).Trim()
-            if ($uid -eq '0') { return }
-        } catch { }
-    }
-    throw 'The MOE emulator could not enable access to its local save. No update was installed.'
+    if ($uid -ne '0') { throw 'The selected test emulator must already provide root access. No daemon will be restarted.' }
 }
 function Install-MOEBaseApk([string]$Adb, [string]$Serial, [string]$Apk, [switch]$Inherit) {
     if (!$Inherit) {
@@ -231,7 +241,7 @@ function Install-MOEBaseApk([string]$Adb, [string]$Serial, [string]$Apk, [switch
 }
 function Apply-MOERelease($Candidate, [string]$BootstrapApk, [string]$CacheRoot, $Config, [string]$Adb, [string]$Serial) {
     Assert-MOEEmulatorRoot $Adb $Serial
-    $installed = @(& $Adb -s $Serial shell pm path $script:MOEPackage 2>$null)
+    $installed = @((Invoke-MOEAdb $Adb $Serial @('shell','pm','path',$script:MOEPackage)) -split '[\r\n]+')
     $basePath = @($installed | Where-Object { $_ -match '/base.apk$' } | Select-Object -First 1)
     $exists = $basePath.Count -gt 0
     $baseHash = ''
@@ -268,7 +278,7 @@ function Apply-MOERelease($Candidate, [string]$BootstrapApk, [string]$CacheRoot,
     $activeState = Join-Path $CacheRoot 'active-release.json'
     $alreadyApplied = $false
     if ($Candidate -and (Test-Path -LiteralPath $activeState)) {
-        try { $alreadyApplied = (Read-MOEJson $activeState).manifest_sha256 -eq $Candidate.hash } catch {}
+        try { $cachedState = Read-MOEJson $activeState; $alreadyApplied = $cachedState.serial -eq $Serial -and $cachedState.manifest_sha256 -eq $Candidate.hash } catch {}
     }
     if (!$mustInstall -and (!$Candidate -or $alreadyApplied)) { return }
     [void][IO.Directory]::CreateDirectory($CacheRoot)
@@ -334,7 +344,7 @@ function Apply-MOERelease($Candidate, [string]$BootstrapApk, [string]$CacheRoot,
             if (Test-Path -LiteralPath $activeState) {
                 Copy-Item -LiteralPath $activeState -Destination (Join-Path $CacheRoot 'previous-release.json') -Force
             }
-            Write-MOEJson $activeState ([ordered]@{ release_folder=(Split-Path $Candidate.directory -Leaf); manifest_sha256=$Candidate.hash; sequence=$manifest.sequence; backup=$backup })
+            Write-MOEJson $activeState ([ordered]@{ release_folder=(Split-Path $Candidate.directory -Leaf); manifest_sha256=$Candidate.hash; sequence=$manifest.sequence; backup=$backup; serial=$Serial })
         }
         if (!$Candidate -or $alreadyApplied) { [void](Invoke-MOEAdb $Adb $Serial @('shell','sync')) }
     } catch {
@@ -406,6 +416,7 @@ function Undo-MOERelease([string]$CacheRoot, $Config, [string]$Adb, [string]$Ser
     Assert-MOEEmulatorRoot $Adb $Serial
     $statePath=Join-Path $CacheRoot 'active-release.json'
     $state=Read-MOEJson $statePath
+    if (!$state.PSObject.Properties['serial'] -or $state.serial -ne $Serial) { throw 'Rollback backup does not belong to the explicitly selected emulator.' }
     $root=[IO.Path]::GetFullPath((Join-Path $CacheRoot 'backups'))+[IO.Path]::DirectorySeparatorChar
     $backup=[IO.Path]::GetFullPath($state.backup)
     if (!$backup.StartsWith($root,[StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid rollback backup location.' }

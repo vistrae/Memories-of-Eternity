@@ -1,42 +1,45 @@
 # Memories of Eternity Update Server
 
-## Current release: B21
+## Current release: B24
 
-B21 restores offline dormitory purchases and saving for all 283 archived decoration IDs, with original Gem prices and earned set rewards. Each owned room retains its own collection and six-slot layout. All 70 HOT cards remain visible at 20 AP; progression requirements and numeric purchase limits apply, and a Chapter N package requires clearing Chapter N itself. The six Pension missions grant the requested custom 50,000 Credits per clear. Codex history tracks exact acquired suit models and retains them after evolution or consumption; family Episodes require acquisition at every available playable grade. Missing lower grades stay locked, and Episode controls follow the original interface states. Existing saves, three local profiles, Captain names, RESET, the 26-Pixie helper roster and its 30-minute refresh behavior remain available. Compatible resource splits and offline play are retained.
+Hangar locks for suits, parts and components restore after offline inventory loading and persist immediately after lock or unlock, including a cold restart before leaving Hangar. Native preference keys/schema, selected-save isolation, ownership, resources and unrelated settings are retained.
 
-## Android phones with an existing offline installation
+B24 consolidates equivalent dormitory showroom purchase listings. All 283 archived decoration IDs remain valid; different prices, earned set rewards, scores and gameplay effects remain distinct products. Existing owned IDs and room placements are retained, and an equivalent owned product can be reused without buying another raw catalog ID. Original prices and room-specific collections remain in place.
 
-Download MOE-Android-Update-Installer.apk from the latest release and update or install the small helper. Keep the existing MOE game installed. Open MOE Update Installer, check for updates, download the verified update, and approve Android's installation prompt. If asked, allow the helper to install updates, return, and check again. Existing saves and installed asset splits are retained. Do not uninstall the game or clear its data. No USB debugging is needed.
+This release also includes the B22 changes, which were previously available only as a local playtest:
 
-B21 supports the original offline-playtest signing identity and the standard SAI signing identity. The installer selects a signed release APK only when its signing identity matches the installed game. Android's normal package, version, and certificate checks remain enforced. Other signing identities stay unsupported; use Installation details, then Copy details, to identify the installed package, version, and public certificate fingerprints. Do not uninstall an incompatible installation before preserving its save. For new installations, keep SAI's Sign APKs option disabled and preserve the supplied signatures.
+- Seven beginner Draw banners (shop IDs 4–10) each allow one purchase per selected save per local calendar week, resetting Monday 00:00. Original Gem prices are retained.
+- Three other supported paid suit-draw banners rotate every 30 minutes using persistent per-save selections. Reopening the shop or restarting does not reroll them. Friendship single/ten draws (IDs 13/14) remain permanently available outside those three slots at their original CP prices.
+- AP cap 60, regenerating 1 AP every 15 minutes. BP cap 20, regenerating 1 BP every 15 minutes. Manual content retains 0 AP/0 BP costs; eligible Auto Clear consumes BP.
+- The seven Gem bundles grant 10/50/160/330/560/850/1200 Gems for 5/10/20/30/40/50/60 AP respectively.
+- Daily Missions uses Normal Dailies, Quick Missions, One-Time Missions and Events tabs. Normal Dailies is the default. Each of the seven tagged Crossover missions can be completed once per local clock hour, with per-save receipts and an Events countdown. Daily list initialization/loading transitions are corrected.
+- A protected Admin testing panel requires authentication and a verified selected-save backup before mutations. Restore returns that save to its pre-Admin baseline; other saves and updater files are preserved. No passcode is distributed in public release sources.
+- Updated interfaces retain the original game's styling, including the title-screen Update button and the save/name controls.
 
-After updating, use Update on the game's title screen for future updates. Checking is optional. Offline play remains available and network failures leave the current game usable. The button is hidden after Start. Android still requires approval for APK installation.
+Previously published B21 features remain included: all 283 furniture IDs available offline with original prices and earned set rewards; 70 HOT cards at 20 AP with their progression/numeric limits; 50,000 Credits per clear for the six Pension missions; per-save Codex acquisition/episode requirements; three save profiles, Captain names, typed RESET and offline helpers. The 26-Pixie helper roster refreshes every 30 minutes, with a 100-Gem paid refresh.
 
-The helper requires an existing com.nexon.moe.global offline installation with a supported signing identity and matching package version. Android 5 or newer and support for 32-bit ARM apps are required. Validation uses an Android 11 emulator; the user's remote LDPlayer installation and physical phones have not been directly verified. The helper is intended for the initial APK bootstrap; use the game itself for future content updates.
+## Android phones
+
+Keep the existing game and resource splits installed. Use **Update** on the title screen, or install **MOE-Android-Update-Installer.apk** (version 1.4/code 5) for an older supported build. Approve Android's installation prompt when shown. The helper selects the matching canonical or standard SAI signing variant and updates the base APK while retaining compatible installed resource splits and local saves.
+
+Do not uninstall the game or clear its data. A package/signature mismatch is rejected before installation. An installation re-signed with a different private key requires a matching build; the updater does not bypass Android signature checks. This release updates an existing asset installation and does not include a fresh full asset set.
+
+Update checks are optional. Offline play remains available. The installer may need Android's permission to install an update from this source; USB debugging is not required. Older APK-only clients that predate the native updater may need the standalone helper once before future title-screen updates work.
 
 ## Windows playtest
 
-Use Launch-MOE.cmd in the existing playtest outputs folder. The launcher checks GitHub and can continue offline when checks fail. Launch-MOE.ps1 -SkipUpdateCheck skips checking. MOE-Windows-Updater-B21.zip includes the updater files and the canonical base APK; it requires the existing project/emulator/assets installation. It does not include the SAI-compatible APK.
+Download **MOE-Windows-Updater-B24.zip** and extract it into the Windows launcher folder. Keep the installed game, local saves and compatible resource splits. Start your dedicated **MOE-Split-Test** emulator yourself, then explicitly supply its serial and the ADB path; for example, `Launch-MOE.cmd -Serial emulator-5560 -AdbPath "C:\Android\platform-tools\adb.exe"`. Use the actual serial of your running test emulator; the example is not selected automatically.
 
-Update-MOE.ps1 -Mode Check checks manually. Update-MOE.ps1 -Mode Rollback restores previous game files while retaining the current save. Installed APK and save backups are kept before Windows updates. Android provides previous asset-selection restoration; it does not silently overwrite saves from a backup.
+To check or download an update without accessing a device, run `powershell -File .\Update-MOE.ps1 -Mode Check` (add `-AcceptUpdate` to accept a download). To apply it, use `powershell -File .\Update-MOE.ps1 -Mode Update -Serial <your-test-serial> -AdbPath <your-adb-path>`; rollback uses `-Mode Rollback` with the same explicit target. Updates and rollback require root access already active. Default caches/backups are separated by serial, and rollback rejects a backup for another target.
 
-## Verification and asset updates
+These scripts never start, stop or restart an emulator, change its network settings, restart its ADB daemon or select a connected device automatically. The `emulator-5556` device and the **MOE** AVD are protected and always rejected. Only the explicitly selected **MOE-Split-Test** AVD is supported. The ZIP contains the signed base APK and updater scripts; it is not a standalone Unity Windows conversion.
 
-Release manifests are signed with a pinned RSA key. Downloads are checked against signed sizes and SHA256 values. An optional apk_variants list names independently signed APKs and their required installed certificate fingerprints. New Android updaters select only a matching variant, then verify the APK's actual signing identity. Earlier canonical clients and Windows continue using the default APK.
+## Verification and save compatibility
 
-APK updates use Android install sessions that inherit existing resource splits. Compatible asset updates use a private cache and atomic asset selection, without modifying original installed assets or saves. Corrupt overlays fall back to original assets. Opening/prologue movie replacement is excluded from this asset format. Engine format, signing identity, package version, or save-schema changes need compatible migration work.
+The update manifest is signed with the existing release key. Payload sizes, SHA256 hashes, package identity and signing certificates are checked before installation. Save schema 1 and the existing Android application ID are retained. Asset updates, if ever declared, remain optional and must use a separately signed declaration; no asset rewrite is required for this release.
+
+The canonical game certificate is `2c616f46dd007026571ba37ca5dfd291dd2ad36cd9aeee8620fd966e6e1886e8`. Standard SAI uses `a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc`.
 
 ## Publishing
 
-New-MOERelease.ps1 signs future releases locally. Keep the private signing XML and Android keystore private; neither belongs in this repository. Current packaging reconstructs the already-signed B21 canonical APK from the verified public B20 APK and a binary delta. A second delta reproduces the SAI-compatible APK from the canonical B21 file. The release builder verifies both against the signed manifest and checks that their game content is identical. Signed manifest bytes are stored in base64 to preserve them exactly. GitHub Actions verifies reconstructed APKs before uploading and publishing release files using its temporary token. Existing successful releases remain immutable.
-
-APK changes still need an in-place Android installation. The updater avoids reinstalling the complete asset collection; asset-only releases can download just changed files.
-
-## Retained B15 additions
-
-The bottom-left title label shows only B15, using the current build number automatically. The helper now offers copyable installation details and identifies unreadable APKs, package/version differences, missing certificates, and signing mismatches separately. Vendor APK parsers can retry a verified copy with an .apk filename. The Update button reattaches if Android recreates the game activity after visiting installation settings. Supported standard-SAI installations can receive a matching signed APK while preserving their existing resource splits and local save.
-
-## Retained B14 additions
-
-The Team editor handles empty teams. All 608 archived outfit offers stay available without date limits; original non-date unlock requirements remain enforced. The 25 originally unpriced offers cost 1,200 Gems. Options offers Reset Local Save with a typed RESET confirmation, a verified recovery copy, and installed assets retained. Resetting closes the game; reopen to start fresh. Gem packages grant 10/75/240/550/1050/1870/3000 Gems for 5/15/30/50/75/110/150 AP.
-
+`release/build-release.py` reconstructs the already-signed B24 canonical APK from the pinned public B21 canonical APK using verified delta chunks, reconstructs the matching SAI variant, verifies the signed manifest, and builds the deterministic Windows ZIP. The repository stores bounded text transfer chunks and public updater sources; it does not contain private signing keys, local saves or the original asset archive. Existing release tags and files are retained.

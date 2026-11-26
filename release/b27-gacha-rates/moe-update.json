@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "application_id": "com.nexon.moe.global",
+  "asset_format": "unity5-global-51",
+  "channel": "stable",
+  "save_schema_version": 1,
+  "min_updater_version": 1,
+  "sequence": 27,
+  "required_client_sequence": 27,
+  "release_id": "b27-gacha-rates",
+  "changelog": "B27 - Rare US gacha rates\r\n\r\n- Mixed banners with eligible US suits: combined 1% random US chance per pull.\r\n- With all three tiers present: US 0.85%, US+1 0.13%, US+2 0.02%.\r\n- Missing tiers redistribute that 1% using 85:13:2 weights over available variants; no suits are added to any banner.\r\n- US-only pools, fixed-grade rewards and explicit featured guarantees remain intact.\r\n- Existing non-US normal/event weighting is retained. Actual remodel data determines upgrade tiers; no US+3 was found.\r\n\r\nCompatibility\r\n- Offline play, application identity, save schema1, all three local profiles and compatible installed resource splits are retained.\r\n- Do not uninstall or clear game data. The updater supplies both canonical and standard-SAI signed base APKs and selects the matching certificate.\r\n- Android: title-screen Update or existing update installer; approve the Android installation prompt. No USB debugging needed.\r\n- Windows: the updater requires an explicitly selected, already-running MOE-Split-Test emulator. It never starts/restarts an emulator or selects a device automatically; protected MOE/emulator-5556 remains rejected.\r\n- This is an update for an existing resource installation, not a new full asset package.\r\n\r\nValidation\r\n- 108 deterministic checks across all41 archived event pools; one million seeded draws produced8483 US,1294 US+1 and202 US+2, approximately1% combined.\r\n- Production gameplay compilation, APK signatures and ZIP integrity verified.2118 unrelated B26 APK entries and non-updater native classes remain byte-identical.\r\n- No player saves or devices were accessed. B27 has not received a new in-game/device playtest.\r\n",
+  "apk": {
+    "size": 70119342,
+    "sha256": "652aa86cb9b3805357def78772c9eeafd7e05735aa0362bce7c129079f2dffeb",
+    "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b27-gacha-rates/moe-base.apk"
+  },
+  "assets": [],
+  "remove_assets": [],
+  "apk_variants": [
+    {
+      "signing_certificate_sha256": "a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc",
+      "size": 70120231,
+      "sha256": "c64dcd16109c16bf11ec82cf52b9d7195968a08b54e93717c4c4305ad71e1778",
+      "url": "https://github.com/vistrae/Memories-of-Eternity/releases/download/b27-gacha-rates/moe-base-sai.apk"
+    }
+  ]
+}

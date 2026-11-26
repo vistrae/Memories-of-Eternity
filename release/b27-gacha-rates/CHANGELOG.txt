@@ -1,0 +1,19 @@
+B27 - Rare US gacha rates
+
+- Mixed banners with eligible US suits: combined 1% random US chance per pull.
+- With all three tiers present: US 0.85%, US+1 0.13%, US+2 0.02%.
+- Missing tiers redistribute that 1% using 85:13:2 weights over available variants; no suits are added to any banner.
+- US-only pools, fixed-grade rewards and explicit featured guarantees remain intact.
+- Existing non-US normal/event weighting is retained. Actual remodel data determines upgrade tiers; no US+3 was found.
+
+Compatibility
+- Offline play, application identity, save schema1, all three local profiles and compatible installed resource splits are retained.
+- Do not uninstall or clear game data. The updater supplies both canonical and standard-SAI signed base APKs and selects the matching certificate.
+- Android: title-screen Update or existing update installer; approve the Android installation prompt. No USB debugging needed.
+- Windows: the updater requires an explicitly selected, already-running MOE-Split-Test emulator. It never starts/restarts an emulator or selects a device automatically; protected MOE/emulator-5556 remains rejected.
+- This is an update for an existing resource installation, not a new full asset package.
+
+Validation
+- 108 deterministic checks across all41 archived event pools; one million seeded draws produced8483 US,1294 US+1 and202 US+2, approximately1% combined.
+- Production gameplay compilation, APK signatures and ZIP integrity verified.2118 unrelated B26 APK entries and non-updater native classes remain byte-identical.
+- No player saves or devices were accessed. B27 has not received a new in-game/device playtest.

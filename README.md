@@ -1,6 +1,12 @@
 # Memories of Eternity Update Server
 
-## Current release: B26
+## Current release: B27
+
+Mixed suit banners containing US suits now have a combined 1% random US chance. When all archived US tiers are present, the per-draw chances are US 0.85%, US+1 0.13% and US+2 0.02%. Missing tiers redistribute their share over the eligible US variants; no suit is added to a banner. US-only banners and explicit fixed-grade/featured guarantees remain intact. Existing non-US draw weighting remains unchanged.
+
+The actual remodel table identifies US upgrade tiers; the event table's stale step-zero fields are not used for these weights. No US+3 is present in the archive. Gacha validation passed 108 deterministic checks across all 41 original event pools, plus one million seeded draws. Both signed APK variants and the release manifest are verified. B27 has not received a new in-game/device playtest; B26's previously verified save/native components and assets are retained.
+
+## Retained B26 features
 
 Newly acquired Pixies with an archived Prototype family receive their own literal C-grade Preferred Prototype suit: 25 original Pixie-to-suit associations, each with original team cost 2. Fresh Leahs and Puris retain level 5; later recruits retain level 1. Existing saved equipment and levels stay unchanged. Miku has no archived C-grade Prototype Harmony and keeps her existing B-grade Common Desert Service Support (suit 10110); original recruitment conditions and Heart costs are retained.
 
@@ -36,7 +42,7 @@ Update checks are optional. Offline play remains available. The installer may ne
 
 ## Windows playtest
 
-Download **MOE-Windows-Updater-B26.zip** and extract it into the Windows launcher folder. Keep the installed game, local saves and compatible resource splits. Start your dedicated **MOE-Split-Test** emulator yourself, then explicitly supply its serial and the ADB path; for example, `Launch-MOE.cmd -Serial emulator-5560 -AdbPath "C:\Android\platform-tools\adb.exe"`. Use the actual serial of your running test emulator; the example is not selected automatically.
+Download **MOE-Windows-Updater-B27.zip** and extract it into the Windows launcher folder. Keep the installed game, local saves and compatible resource splits. Start your dedicated **MOE-Split-Test** emulator yourself, then explicitly supply its serial and the ADB path; for example, `Launch-MOE.cmd -Serial emulator-5560 -AdbPath "C:\Android\platform-tools\adb.exe"`. Use the actual serial of your running test emulator; the example is not selected automatically.
 
 To check or download an update without accessing a device, run `powershell -File .\Update-MOE.ps1 -Mode Check` (add `-AcceptUpdate` to accept a download). To apply it, use `powershell -File .\Update-MOE.ps1 -Mode Update -Serial <your-test-serial> -AdbPath <your-adb-path>`; rollback uses `-Mode Rollback` with the same explicit target. Updates and rollback require root access already active. Default caches/backups are separated by serial, and rollback rejects a backup for another target.
 
@@ -50,4 +56,4 @@ The canonical game certificate is `2c616f46dd007026571ba37ca5dfd291dd2ad36cd9aee
 
 ## Publishing
 
-`release/build-release.py` reconstructs the already-signed B26 canonical APK from the pinned public B21 canonical APK using verified delta chunks, reconstructs the matching SAI variant, verifies the signed manifest, and builds the deterministic Windows ZIP. The repository stores bounded text transfer chunks and public updater sources; it does not contain private signing keys, local saves or the original asset archive. Existing release tags and files are retained.
+`release/build-release.py` reconstructs the already-signed B27 canonical APK from the pinned public B21 canonical APK using verified delta chunks, reconstructs the matching SAI variant, verifies the signed manifest, and builds the deterministic Windows ZIP. The repository stores bounded text transfer chunks and public updater sources; it does not contain private signing keys, local saves or the original asset archive. Existing release tags and files are retained.
